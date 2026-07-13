@@ -1,40 +1,50 @@
-import { skills } from '../data/content'
+import { useLang } from '../i18n'
 import Reveal from './Reveal'
+import { CpuIcon, ChartIcon, CodeIcon, TerminalIcon, GlobeIcon } from './icons'
 
 const ICONS = {
-  Languages: '💻',
-  'Data & BI': '📊',
-  'Machine Learning & AI': '🧠',
-  'Web & GIS': '🗺️',
-  'DevOps & Tools': '🛠️',
+  cpu: CpuIcon,
+  chart: ChartIcon,
+  code: CodeIcon,
+  terminal: TerminalIcon,
+  globe: GlobeIcon,
+}
+
+const TAG_TONE = {
+  green: { background: 'rgba(79,155,161,0.18)', border: '1px solid rgba(115,191,196,0.3)', color: '#e7f4f5' },
+  olive: { background: 'rgba(141,160,206,0.14)', border: '1px solid rgba(141,160,206,0.32)', color: '#eaeef8' },
+  neutral: { background: 'rgba(238,241,246,0.05)', border: '1px solid rgba(238,241,246,0.11)', color: 'var(--fg2)' },
 }
 
 export default function Skills() {
+  const { t } = useLang()
   return (
-    <section id="skills" className="relative mx-auto max-w-content px-6 py-16 sm:px-10">
+    <section id="skills" className="relative z-[1] mx-auto max-w-content px-6 py-24 sm:px-10">
       <Reveal className="mb-11">
-        <div className="glass-soft inline-block rounded-2xl px-6 py-5">
-          <div className="mono-label mb-3">
-            // 02 — SKILLS &nbsp;·&nbsp;{' '}
-            <span className="text-dim">the stack I think in →</span>
-          </div>
+        <div>
+          <div className="mono-label mb-3">{t.skills.label}</div>
           <h2 className="m-0 max-w-[18ch] font-display text-[clamp(28px,3.4vw,42px)] font-bold tracking-[-1px]">
-            The stack I think in.
+            {t.skills.heading}
           </h2>
         </div>
       </Reveal>
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {skills.map((group, idx) => (
-          <Reveal key={group.group} delay={idx * 0.06}>
-            <div className="glass-strong h-full rounded-2xl p-6">
-              <div className="mb-3.5 text-[22px]">{ICONS[group.group] || '⚙️'}</div>
+        {t.skills.groups.map((group, idx) => {
+          const Icon = ICONS[group.icon] || CpuIcon
+          return (
+          <Reveal key={group.group} delay={idx * 0.06} blur>
+            <div className="glass-strong panel-glass h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/30 hover:shadow-[0_16px_40px_rgba(0,0,0,0.4)]">
+              <div className="mb-3.5 grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.05] text-accent">
+                <Icon size={18} />
+              </div>
               <h3 className="m-0 mb-4 font-display text-lg font-semibold">{group.group}</h3>
               <div className="flex flex-wrap gap-2">
                 {group.items.map((item) => (
                   <span
                     key={item}
-                    className="rounded-md border border-cyan/[0.28] bg-cyan/[0.12] px-2.5 py-1.5 font-mono text-[12.5px] text-[#d4f6fa]"
+                    className="rounded-[7px] px-2.5 py-1.5 font-mono text-[12.5px]"
+                    style={TAG_TONE[group.tone] || TAG_TONE.neutral}
                   >
                     {item}
                   </span>
@@ -42,7 +52,8 @@ export default function Skills() {
               </div>
             </div>
           </Reveal>
-        ))}
+          )
+        })}
       </div>
     </section>
   )

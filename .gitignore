@@ -31,3 +31,7 @@ pnpm-debug.log*
 .env
 .env.local
 .env.*.local
+
+# Anciennes itérations conservées en local uniquement
+_archive/
+.claude/

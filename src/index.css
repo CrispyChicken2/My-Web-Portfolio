@@ -3,8 +3,52 @@
 @tailwind utilities;
 
 @layer base {
+  /* ------------------------------------------------------------------
+     Design tokens — "Hot Light" palette, derived from the ShaderGradient
+     background (#73bfc4 teal · #ff810a hot orange · #8da0ce periwinkle).
+     Change the theme here; components consume these variables.
+     ------------------------------------------------------------------ */
+  :root {
+    /* page */
+    --bg: #05070b;
+    --wall-1: #0b0f16;
+    --wall-2: #06080d;
+    --wall-3: #03050a;
+
+    /* surfaces */
+    --win: #101623; /* card chrome */
+    --win-body: #070a10; /* content wells */
+    --win-status: #1d2638; /* scrollbar thumb */
+
+    /* foreground scale (1 = brightest) */
+    --fg1: #eef1f6;
+    --fg2: #c6cdd9;
+    --fg3: #aeb6c4;
+    --fg4: #8e97a8;
+    --fg5: #7f8899;
+    --fg8: #4e5666;
+
+    /* accents */
+    --acc: #73bfc4; /* teal */
+    --acc-deep: #4f9ba1;
+    --ink: #1a0e04; /* skip-link text on accent */
+
+    /* rgb triplet for Tailwind alpha modifiers */
+    --acc-rgb: 115 191 196;
+
+    /* translucent surfaces (blur carries the readability) */
+    --glass-1: rgba(16, 22, 35, 0.5);
+    --glass-2: rgba(16, 22, 35, 0.6);
+    --nav-bg: rgba(10, 14, 22, 0.42);
+  }
+
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Anchor targets clear the fixed nav */
+  [id] {
+    scroll-margin-top: 90px;
   }
 
   body {
@@ -12,9 +56,18 @@
     overflow-x: hidden;
   }
 
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+
   ::selection {
-    background: rgba(34, 211, 238, 0.35);
-    color: #070b12;
+    background: rgba(115, 191, 196, 0.35);
+    color: #05070b;
   }
 
   /* Dark scrollbar */
@@ -22,49 +75,131 @@
     width: 11px;
   }
   ::-webkit-scrollbar-track {
-    background: #070b12;
+    background: var(--bg);
   }
   ::-webkit-scrollbar-thumb {
-    background: #1c2740;
+    background: var(--win-status);
     border-radius: 9999px;
-    border: 3px solid #070b12;
+    border: 3px solid var(--bg);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #2a3a5c;
+    background: #27324a;
   }
 
   a:focus-visible,
-  button:focus-visible {
-    @apply rounded outline-none ring-2 ring-cyan/60 ring-offset-2 ring-offset-void;
+  button:focus-visible,
+  [role='button']:focus-visible {
+    @apply rounded outline-none ring-2 ring-accent/60 ring-offset-2 ring-offset-void;
   }
 }
 
 @layer components {
-  /* Glassmorphic dark cards / windows */
-  .glass {
-    @apply border border-white/[0.09] backdrop-blur-xl;
-    background-color: rgba(12, 19, 32, 0.82);
-  }
+  /* -------------------------------------------------------------------
+     Liquid glass surfaces: frosted refraction (blur + saturation), a
+     specular top rim, soft inner edges, and a diagonal sheen.
+     ------------------------------------------------------------------- */
+  /* Panel frame (border + depth + sheen). The see-through level is chosen
+     PER container by a .panel-* modifier, so each section is independent. */
+  .glass,
   .glass-strong {
-    @apply border border-white/[0.09] backdrop-blur-xl;
-    background-color: rgba(12, 19, 32, 0.9);
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background-image: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.012) 40%,
+      rgba(255, 255, 255, 0) 62%,
+      rgba(255, 255, 255, 0.04)
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 20px 50px rgba(4, 2, 10, 0.45);
   }
-  .glass-soft {
-    @apply border border-white/[0.07] backdrop-blur-lg;
-    background-color: rgba(12, 16, 24, 0.62);
+  /* Transparency levels: the background-color's alpha lets the shader show
+     through; the blur frosts it. Solid = opaque, no blur. */
+  .panel-solid {
+    background-color: #121826;
+  }
+  .panel-glass {
+    background-color: rgba(16, 22, 35, 0.5);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+  }
+  .panel-glass-subtle {
+    background-color: rgba(16, 22, 35, 0.86);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
   }
 
-  /* Animated gradient text */
+  /* tint variant kept for the nav bar's liquid-glass WebGL layer */
+  .lgjs-host {
+    isolation: isolate;
+  }
+
+  /* Frosted-glass buttons. Border + diagonal sheen + inset highlight read as
+     glass even over a solid card; the backdrop blur adds refraction over the
+     shader. .lg-pill = secondary (translucent), .lg-cta = primary (over an
+     orange tint set inline). */
+  .lg-pill {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    background-image: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(255, 255, 255, 0.07)
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  .lg-cta {
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    background-image: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0.05) 55%,
+      rgba(255, 255, 255, 0.13)
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  }
+
+  /* Animated gradient text (teal → periwinkle → hot orange shimmer) */
   .text-gradient {
-    background: linear-gradient(110deg, #ffd089, #22d3ee 52%, #818cf8);
+    background: linear-gradient(
+      110deg,
+      #73bfc4,
+      #8da0ce 30%,
+      #ff810a 50%,
+      #8da0ce 70%,
+      #73bfc4
+    );
+    background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+    @apply animate-shimmer;
   }
 
-  /* Mono section label (// 0X — LABEL) */
+  @media (prefers-reduced-motion: reduce) {
+    .text-gradient {
+      animation: none;
+    }
+  }
+
+  /* Mono section label (// 0X — LABEL) with a leading accent dash */
   .mono-label {
-    @apply font-mono text-[13px] tracking-[1px] text-cyan;
+    @apply font-mono text-[13px] tracking-[1px] text-accent;
+  }
+  .mono-label::before {
+    content: '';
+    display: inline-block;
+    width: 28px;
+    height: 1px;
+    background: rgba(115, 191, 196, 0.55);
+    margin-right: 12px;
+    vertical-align: middle;
   }
 }

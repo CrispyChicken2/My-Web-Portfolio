@@ -1,59 +1,84 @@
-import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa'
-import { social, profile } from '../data/content'
+import { useEffect, useRef, useState } from 'react'
+import { social } from '../data/content'
+import { useLang } from '../i18n'
 import Reveal from './Reveal'
+import { MailIcon, CopyIcon, CheckIcon } from './icons'
 
 export default function Contact() {
+  const { t } = useLang()
+  const [copied, setCopied] = useState(false)
+  const resetTimer = useRef(0)
+
+  useEffect(() => () => clearTimeout(resetTimer.current), [])
+
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(social.email)
+      setCopied(true)
+      clearTimeout(resetTimer.current)
+      resetTimer.current = setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* clipboard unavailable — the mailto button remains */
+    }
+  }
+
   return (
-    <section id="contact" className="relative mx-auto max-w-content px-6 py-16 sm:px-10">
+    <section id="contact" className="relative z-[1] mx-auto max-w-content px-6 pb-20 pt-24 sm:px-10">
       <Reveal>
-        <div className="glass relative overflow-hidden rounded-[24px] px-8 py-16 text-center sm:px-12">
+        <div className="glass panel-glass-subtle relative overflow-hidden rounded-[24px] px-8 py-16 text-center sm:px-12">
           <div
             className="pointer-events-none absolute left-1/2 top-[-40%] h-[500px] w-[500px] -translate-x-1/2"
-            style={{
-              background: 'radial-gradient(circle, rgba(34,211,238,0.16), transparent 70%)',
-            }}
+            style={{ background: 'radial-gradient(circle, rgba(255,129,10,0.13), transparent 70%)' }}
           />
           <div className="relative">
-            <div className="mono-label mb-4">// 05 — LET&rsquo;S TALK</div>
+            <div className="mono-label mb-4">{t.contact.label}</div>
             <h2 className="m-0 mb-5 font-display text-[clamp(30px,4vw,50px)] font-bold leading-[1.05] tracking-[-1.5px]">
-              Let&rsquo;s build something
+              {t.contact.headingLines[0]}
               <br />
-              that learns.
+              {t.contact.headingLines[1]}
             </h2>
             <p className="mx-auto mb-8 max-w-[48ch] text-[17px] leading-relaxed text-mute">
-              I&rsquo;m looking for Data / ML / Quant internships and graduate roles. My inbox
-              is always open — say hello.
+              {t.contact.blurb}
             </p>
             <div className="flex flex-wrap justify-center gap-3.5">
               <a
                 href={`mailto:${social.email}`}
-                className="inline-flex items-center gap-2.5 rounded-xl bg-cyan px-7 py-3.5 text-[15px] font-semibold text-void shadow-[0_8px_26px_rgba(34,211,238,0.28)] transition-transform duration-200 hover:-translate-y-0.5"
+                className="lg-cta inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_8px_26px_rgba(255,129,10,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(255,129,10,0.48)] active:scale-[0.97]"
+                style={{ backgroundColor: 'rgba(255,138,46,0.66)' }}
               >
-                <FaEnvelope size={16} /> {social.email}
+                <MailIcon size={16} /> {social.email}
               </a>
+              <button
+                type="button"
+                onClick={copyEmail}
+                aria-live="polite"
+                className="lg-pill inline-flex items-center gap-2 rounded-full px-5 py-3.5 text-[15px] font-semibold text-fg transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:scale-[0.97]"
+              >
+                {copied ? <CheckIcon size={15} className="text-accent" /> : <CopyIcon size={15} />}
+                {copied ? t.contact.copied : t.contact.copyEmail}
+              </button>
               <a
                 href={social.github}
                 target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2.5 rounded-xl border border-white/[0.16] bg-white/5 px-6 py-3.5 text-[15px] font-semibold text-fg transition-colors duration-200 hover:bg-white/10"
+                rel="noopener noreferrer"
+                className="lg-pill inline-flex items-center gap-2.5 rounded-full px-6 py-3.5 text-[15px] font-semibold text-fg transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:scale-[0.97]"
               >
-                <FaGithub size={16} /> GitHub
+                GitHub
               </a>
               <a
                 href={social.linkedin}
                 target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2.5 rounded-xl border border-white/[0.16] bg-white/5 px-6 py-3.5 text-[15px] font-semibold text-fg transition-colors duration-200 hover:bg-white/10"
+                rel="noopener noreferrer"
+                className="lg-pill inline-flex items-center gap-2.5 rounded-full px-6 py-3.5 text-[15px] font-semibold text-fg transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/10 active:scale-[0.97]"
               >
-                <FaLinkedin size={16} /> LinkedIn
+                LinkedIn
               </a>
             </div>
           </div>
         </div>
-        <div className="mt-10 text-center font-mono text-[13px] text-[#4b5667]">
-          © {new Date().getFullYear()} {profile.name} · built with React, Tailwind &amp; Framer
-          Motion
-        </div>
+        <footer className="mt-12 text-center font-mono text-[12px]" style={{ color: 'var(--fg8)' }}>
+          © {new Date().getFullYear()} {t.profile.name}
+        </footer>
       </Reveal>
     </section>
   )

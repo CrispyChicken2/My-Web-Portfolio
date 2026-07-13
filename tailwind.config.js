@@ -1,20 +1,16 @@
 /** @type {import('tailwindcss').Config} */
+// Color values live in src/index.css (:root design tokens) — edit them there.
 export default {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        void: '#070b12', // page background
-        panel: '#0c1320', // card / window surface
-        fg: '#e7ecf3', // primary text
-        mute: '#aab4c4', // body text
-        dim: '#8b97a8', // secondary text
-        faint: '#7a8aa0', // labels / tertiary
-        cyan: '#22d3ee', // primary accent
-        indigo: '#818cf8', // secondary accent
-        amber: '#f6b95c', // warm accent
-        gold: '#f3edda', // stat numbers
-        accent: '#22d3ee',
+        void: 'var(--bg)', // page background
+        fg: 'var(--fg1)', // primary text
+        mute: 'var(--fg3)', // body text
+        dim: 'var(--fg4)', // secondary text
+        accent: 'rgb(var(--acc-rgb) / <alpha-value>)', // primary accent
+        ink: 'var(--ink)', // text on accent surfaces
       },
       fontFamily: {
         display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
@@ -29,20 +25,24 @@ export default {
           '0%,100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
         },
-        scrollcue: {
-          '0%': { transform: 'translateY(0)', opacity: '1' },
-          '70%': { opacity: '1' },
-          '100%': { transform: 'translateY(14px)', opacity: '0' },
-        },
         blink: {
           '0%,50%': { opacity: '1' },
           '50.01%,100%': { opacity: '0' },
         },
+        shimmer: {
+          '0%': { backgroundPosition: '0% 50%' },
+          '100%': { backgroundPosition: '200% 50%' },
+        },
+        scrolldrip: {
+          from: { transform: 'translateY(-18px)' },
+          to: { transform: 'translateY(42px)' },
+        },
       },
       animation: {
         floaty: 'floaty 4s ease-in-out infinite',
-        scrollcue: 'scrollcue 1.6s ease-in-out infinite',
         blink: 'blink 1s step-end infinite',
+        shimmer: 'shimmer 6s linear infinite',
+        scrolldrip: 'scrolldrip 1.8s ease-in-out infinite',
       },
     },
   },
