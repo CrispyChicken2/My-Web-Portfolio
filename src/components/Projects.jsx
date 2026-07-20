@@ -64,9 +64,8 @@ function ProjectCard({ project, idx }) {
 
         {project.imageSlot && (
           <ImageSlot
-            id={project.title}
             src={project.image}
-            ariaLabel={t.projects.addScreenshot.replace('{title}', project.title)}
+            alt={t.projects.screenshotAlt.replace('{title}', project.title)}
             radius={12}
             className="mb-4 h-[180px] w-full"
           />

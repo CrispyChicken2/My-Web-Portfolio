@@ -57,9 +57,8 @@ export default function About() {
                 }}
               />
               <ImageSlot
-                id="profile-photo"
                 src="/assets/profile.webp"
-                ariaLabel={t.about.photoAlt}
+                alt={t.about.photoAlt}
                 radius={20}
                 className="absolute inset-0 h-full w-full"
                 placeholder={<span className="font-display text-[84px] font-bold text-gradient">{initials}</span>}

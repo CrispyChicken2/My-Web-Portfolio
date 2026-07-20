@@ -62,7 +62,7 @@ const en = {
     ],
     exploring: 'currently exploring',
     exploringWhat: '▸ MLOps & deployment',
-    photoAlt: 'Add your photo',
+    photoAlt: 'Portrait of Oscar Hunaut',
   },
 
   skills: {
@@ -80,8 +80,7 @@ const en = {
   projects: {
     label: '// 03 — SELECTED WORK',
     heading: "Projects I'm proud of.",
-    addScreenshot: 'Add a {title} screenshot',
-    replacePicture: 'Replace picture',
+    screenshotAlt: '{title} — project screenshot',
     items: [
       {
         title: 'RenovTaCana',
@@ -195,7 +194,7 @@ const fr = {
     ],
     exploring: 'en ce moment',
     exploringWhat: '▸ MLOps & déploiement',
-    photoAlt: 'Ajouter ma photo',
+    photoAlt: "Portrait d'Oscar Hunaut",
   },
 
   skills: {
@@ -213,8 +212,7 @@ const fr = {
   projects: {
     label: '// 03 — PROJETS PHARES',
     heading: 'Des projets dont je suis fier.',
-    addScreenshot: 'Ajouter une capture de {title}',
-    replacePicture: "Remplacer l'image",
+    screenshotAlt: '{title} — capture du projet',
     items: [
       {
         title: 'RenovTaCana',
