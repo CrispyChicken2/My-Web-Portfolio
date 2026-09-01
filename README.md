@@ -41,10 +41,11 @@ Placed in **`public/assets/`**:
 - `profile.webp` — profile photo (About section)
 - `renovtacana.webp` — RenovTaCana project screenshot
 
-The `ImageSlot` component renders them. You can also drag-and-drop an image
-straight onto a slot in the browser (kept in localStorage, for a local preview),
-but visitors see the file in `public/assets/` — keep filenames lowercase with no
-spaces (the host is case-sensitive).
+The `ImageSlot` component renders them and is display-only — visitors cannot
+click, focus or replace a picture. To change one, replace the file in
+`public/assets/` keeping the same name; keep filenames lowercase with no spaces
+(the host is case-sensitive). If the file is missing, the slot falls back to a
+designed cover tile rather than showing an error.
 
 ### Container transparency
 Set **per section** with a `.panel-*` class (in `src/index.css`):

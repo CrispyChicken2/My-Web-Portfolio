@@ -85,8 +85,8 @@ const en = {
       {
         title: 'RenovTaCana',
         category: 'Web GIS Application',
-        // Picture slot: drop an image on the card tile (saved in your browser), or
-        // put the real screenshot at public/assets/renovtacana.webp so visitors see it.
+        // Picture slot: display-only. Put the screenshot at the path below;
+        // if the file is missing, the slot shows a designed cover tile instead.
         imageSlot: true,
         image: '/assets/renovtacana.webp',
         description:
