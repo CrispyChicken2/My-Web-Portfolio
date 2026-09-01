@@ -13,9 +13,9 @@ export default {
         ink: 'var(--ink)', // text on accent surfaces
       },
       fontFamily: {
-        display: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        display: ['"Archivo"', 'system-ui', 'sans-serif'],
+        sans: ['"Karla"', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       maxWidth: {
         content: '1200px',

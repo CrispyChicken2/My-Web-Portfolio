@@ -18,12 +18,12 @@ export default function About() {
     <section id="about" className="relative z-[1] mx-auto max-w-content px-6 py-24 sm:px-10">
       <div className="grid items-center gap-12 lg:grid-cols-[1.4fr_1fr]">
         <Reveal blur>
-          <div className="glass panel-solid relative overflow-hidden rounded-[20px] p-9">
+          <div>
             <div className="mono-label mb-4">{t.about.label}</div>
-            <h2 className="m-0 mb-5 font-display text-[clamp(28px,3.4vw,42px)] font-bold leading-tight tracking-[-1px]">
+            <h2 className="m-0 mb-5 font-display text-[clamp(28px,3.4vw,42px)] font-bold leading-tight tracking-[-1px] [text-shadow:0_4px_40px_rgba(8,9,5,0.85)]">
               {t.about.heading}
             </h2>
-            <div className="space-y-4 text-[17px] leading-[1.75] text-mute">
+            <div className="space-y-4 text-[17px] leading-[1.75] text-mute [text-shadow:0_2px_24px_rgba(8,9,5,0.9)]">
               {t.about.paragraphs.map((p, idx) => (
                 <p key={idx}>{p}</p>
               ))}
@@ -34,7 +34,7 @@ export default function About() {
                 return (
                   <span
                     key={tag.label}
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 font-mono text-[13px]"
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 font-mono text-[13px] backdrop-blur-sm"
                     style={{ color: 'var(--fg2)' }}
                   >
                     {Icon && <Icon size={14} className="text-accent" />}

@@ -16,6 +16,11 @@ const TAG_TONE = {
   neutral: { background: 'rgba(238,241,246,0.05)', border: '1px solid rgba(238,241,246,0.11)', color: 'var(--fg2)' },
 }
 
+// Varied column spans (out of 6) so the groups form an asymmetric mosaic
+// instead of a uniform grid of identical tiles — first row takes the two
+// widest groups, second row the three narrower ones.
+const SPAN = ['lg:col-span-3', 'lg:col-span-3', 'lg:col-span-2', 'lg:col-span-2', 'lg:col-span-2']
+
 export default function Skills() {
   const { t } = useLang()
   return (
@@ -29,11 +34,11 @@ export default function Skills() {
         </div>
       </Reveal>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
         {t.skills.groups.map((group, idx) => {
           const Icon = ICONS[group.icon] || CpuIcon
           return (
-          <Reveal key={group.group} delay={idx * 0.06} blur>
+          <Reveal key={group.group} delay={idx * 0.06} blur className={SPAN[idx % SPAN.length]}>
             <div className="glass-strong panel-glass h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/30 hover:shadow-[0_16px_40px_rgba(0,0,0,0.4)]">
               <div className="mb-3.5 grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.05] text-accent">
                 <Icon size={18} />

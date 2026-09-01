@@ -25,19 +25,19 @@ export default function Contact() {
   return (
     <section id="contact" className="relative z-[1] mx-auto max-w-content px-6 pb-20 pt-24 sm:px-10">
       <Reveal>
-        <div className="glass panel-glass-subtle relative overflow-hidden rounded-[24px] px-8 py-16 text-center sm:px-12">
+        <div className="relative overflow-hidden px-8 py-16 text-center sm:px-12">
           <div
             className="pointer-events-none absolute left-1/2 top-[-40%] h-[500px] w-[500px] -translate-x-1/2"
             style={{ background: 'radial-gradient(circle, rgba(255,129,10,0.13), transparent 70%)' }}
           />
           <div className="relative">
             <div className="mono-label mb-4">{t.contact.label}</div>
-            <h2 className="m-0 mb-5 font-display text-[clamp(30px,4vw,50px)] font-bold leading-[1.05] tracking-[-1.5px]">
+            <h2 className="m-0 mb-5 font-display text-[clamp(30px,4vw,50px)] font-bold leading-[1.05] tracking-[-1.5px] [text-shadow:0_4px_50px_rgba(8,9,5,0.85)]">
               {t.contact.headingLines[0]}
               <br />
               {t.contact.headingLines[1]}
             </h2>
-            <p className="mx-auto mb-8 max-w-[48ch] text-[17px] leading-relaxed text-mute">
+            <p className="mx-auto mb-8 max-w-[48ch] text-[17px] leading-relaxed text-mute [text-shadow:0_2px_24px_rgba(8,9,5,0.9)]">
               {t.contact.blurb}
             </p>
             <div className="flex flex-wrap justify-center gap-3.5">
