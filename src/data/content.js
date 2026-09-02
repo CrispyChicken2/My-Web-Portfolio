@@ -70,7 +70,7 @@ const en = {
     heading: 'What I actually work with.',
     groups: [
       { group: 'Machine Learning & AI', icon: 'cpu', tone: 'green', items: ['Scikit-Learn', 'XGBoost', 'CatBoost'] },
-      { group: 'Data & BI', icon: 'chart', tone: 'olive', items: ['Power BI', 'pandas', 'numpy', 'DAX'] },
+      { group: 'Data & BI', icon: 'chart', tone: 'olive', items: ['Power BI', 'pandas', 'polars', 'numpy', 'DAX'] },
       { group: 'Languages', icon: 'code', tone: 'neutral', items: ['Python', 'R', 'SQL', 'JavaScript'] },
       { group: 'DevOps & Tools', icon: 'terminal', tone: 'neutral', items: ['Git', 'CI/CD', 'Docker', 'Github Actions'] },
       { group: 'Web & GIS', icon: 'globe', tone: 'neutral', items: ['HTML/CSS', 'Leaflet.js', 'GeoJSON', 'SQLite'] },
@@ -108,7 +108,7 @@ const en = {
         category: 'Machine Learning · Sports Analytics',
         description:
           'An end-to-end pipeline that forecasts the 2026 World Cup — group stage, knockout bracket, champion, even the final score. Under the hood: causal Elo ratings, a double-Poisson goal model, and Monte-Carlo simulation, all checked against a leakage-free temporal backtest (55.7% accuracy on match outcomes).',
-        tech: ['Python', 'scikit-learn', 'pandas', 'NumPy', 'SciPy'],
+        tech: ['Python', 'scikit-learn', 'pandas', 'numPy', 'SciPy'],
         github: 'https://github.com/CrispyChicken2/World-Cup-2026-predictor-',
       },
     ],
@@ -202,7 +202,7 @@ const fr = {
     heading: 'Ce que j\'utilise, concrètement.',
     groups: [
       { group: 'Machine Learning & IA', icon: 'cpu', tone: 'green', items: ['Scikit-Learn', 'XGBoost', 'CatBoost'] },
-      { group: 'Data & BI', icon: 'chart', tone: 'olive', items: ['Power BI', 'pandas', 'numpy', 'DAX'] },
+      { group: 'Data & BI', icon: 'chart', tone: 'olive', items: ['Power BI', 'pandas', 'polars', 'numpy', 'DAX'] },
       { group: 'Langages', icon: 'code', tone: 'neutral', items: ['Python', 'R', 'SQL', 'JavaScript'] },
       { group: 'DevOps & Outils', icon: 'terminal', tone: 'neutral', items: ['Git', 'CI/CD', 'Docker', 'Github Actions'] },
       { group: 'Web & SIG', icon: 'globe', tone: 'neutral', items: ['HTML/CSS', 'Leaflet.js', 'GeoJSON', 'SQLite'] },
