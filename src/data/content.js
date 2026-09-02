@@ -61,7 +61,7 @@ const en = {
       { icon: 'zap', label: 'ML in production' },
     ],
     exploring: 'currently exploring',
-    exploringWhat: '▸ MLOps & deployment',
+    exploringWhat: '▸ AI Agents and ML',
     photoAlt: 'Portrait of Oscar Hunaut',
   },
 
@@ -193,7 +193,7 @@ const fr = {
       { icon: 'zap', label: 'ML en production' },
     ],
     exploring: 'en ce moment',
-    exploringWhat: '▸ MLOps & déploiement',
+    exploringWhat: '▸ Agents IA et ML',
     photoAlt: "Portrait d'Oscar Hunaut",
   },
 
