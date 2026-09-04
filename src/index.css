@@ -286,9 +286,13 @@
      The Deck. Its Section is one viewport per Project plus one for the
      sticky pane, so its height follows the Project count and adding a
      Project needs no layout change. svh where it exists, so a phone's
-     collapsing address bar cannot cut a Project off.
+     collapsing address bar cannot cut a Project off. --deck-vh is that
+     same unit as one value, so the Deck's scroll-driven travel crosses
+     exactly the pane it is measured against rather than the larger
+     viewport a phone reports before its address bar collapses.
      ------------------------------------------------------------------- */
   .deck {
+    --deck-vh: 1vh;
     height: calc(var(--deck-stages) * 100vh);
   }
   .deck-pane {
@@ -296,6 +300,7 @@
   }
   @supports (height: 100svh) {
     .deck {
+      --deck-vh: 1svh;
       height: calc(var(--deck-stages) * 100svh);
     }
     .deck-pane {

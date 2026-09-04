@@ -109,7 +109,18 @@ function DeckCard({ project, index, current, alt }) {
   const [reachable, setReachable] = useState(index === 0)
 
   const offset = useTransform(current, (c) => c - index)
-  const y = useTransform(offset, (o) => `${deckCardState(o).y}%`)
+  // The seam hands back two travels in two units, and this is where they are
+  // composed: the entry in viewport heights — spent in --deck-vh, the same
+  // unit the pane is sized in, so a waiting Project clears the pane exactly
+  // whatever height a Panel is — and the covered lift as a percent of the
+  // Panel itself.
+  const y = useTransform(offset, (o) => {
+    const { enterVh, y: lift } = deckCardState(o)
+    // 0 rather than a zero-length calc at rest, so a presented Panel carries
+    // no transform at all and is not composited onto a layer of its own.
+    if (enterVh === 0 && lift === 0) return 0
+    return `calc(${enterVh} * var(--deck-vh) + ${lift}%)`
+  })
   const scale = useTransform(offset, (o) => deckCardState(o).scale)
   const opacity = useTransform(offset, (o) => deckCardState(o).opacity)
   const filter = useTransform(offset, (o) => blurFilter(deckCardState(o).blur))

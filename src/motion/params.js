@@ -73,8 +73,19 @@ export function deckCardState(offset) {
     // settling spring count as "arrived" rather than flickering on the exact
     // integer.
     presented: Math.abs(o) < 0.15,
-    // Percent of the sticky pane: up from below, then a small lift as it goes.
-    y: waiting * 100 - covered * 5,
+    // The two travels are kept apart, because they are measured against
+    // different things. The entry is measured against the pane a Project
+    // crosses, not against the Project: a percent of a Panel only clears
+    // the screen while a Panel happens to be as tall as the pane, and it
+    // will not stay that way. In viewport heights — the consumer turns
+    // them into the pane's own unit and composes the two.
+    enterVh: waiting * 100,
+    // The lift is a fraction of the card itself — a Project being covered
+    // climbs toward the centre, so the handover between two Projects happens
+    // where the eye already is. Percent of the Panel. Written as a
+    // subtraction from zero so a Project at rest is exactly untransformed
+    // rather than at -0.
+    y: 0 - covered * 10,
     // The Deck's recede — one of the site's three Zoom moments.
     scale: 1 - covered * 0.14,
     // Visible from one Project below (so the Visitor watches it rise) until

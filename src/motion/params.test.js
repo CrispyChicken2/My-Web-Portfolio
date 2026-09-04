@@ -90,12 +90,25 @@ describe('the Deck', () => {
 
   it('waits below for Projects still to come, and recedes the ones passed', () => {
     // A Project the Deck has not reached yet waits below the fold.
-    expect(deckCardState(-1).y).toBeGreaterThan(0)
+    expect(deckCardState(-1).enterVh).toBeGreaterThan(0)
     // One the Deck has passed stays where it is and falls behind instead.
     const passed = deckCardState(1)
     expect(passed.scale).toBeLessThan(1)
     expect(passed.blur).toBeGreaterThan(0)
     expect(passed.y).toBeLessThanOrEqual(0)
+  })
+
+  it('keeps the entry travel and the covered lift apart', () => {
+    // Two travels in two units: the entry clears the viewport whatever a
+    // Panel's height, the lift is a fraction of the card itself. Neither may
+    // quietly absorb the other.
+    const waiting = deckCardState(-1)
+    expect(waiting.enterVh).toBeGreaterThan(0)
+    expect(waiting.y).toBe(0)
+
+    const passed = deckCardState(1)
+    expect(passed.y).toBeLessThan(0)
+    expect(passed.enterVh).toBe(0)
   })
 
   it('hides Projects far from the current one, in both directions', () => {
@@ -105,9 +118,14 @@ describe('the Deck', () => {
 
   it('keeps every derived transform finite and in range', () => {
     for (let offset = -14; offset <= 14; offset += 0.05) {
-      const { opacity, scale, blur, y } = deckCardState(offset)
+      const { opacity, scale, blur, y, enterVh } = deckCardState(offset)
       expect(Number.isFinite(opacity) && Number.isFinite(scale)).toBe(true)
       expect(Number.isFinite(blur) && Number.isFinite(y)).toBe(true)
+      // A single non-finite term invalidates the whole composed transform,
+      // taking the scale down with it and leaving a Project full-size on
+      // top of the presented one.
+      expect(Number.isFinite(enterVh)).toBe(true)
+      expect(enterVh).toBeGreaterThanOrEqual(0)
       expect(opacity).toBeGreaterThanOrEqual(0)
       expect(opacity).toBeLessThanOrEqual(1)
       expect(scale).toBeGreaterThan(0)
@@ -122,6 +140,7 @@ describe('the Deck', () => {
     for (let offset = -2; offset <= 2; offset += 0.02) {
       const next = deckCardState(offset)
       expect(Math.abs(next.y - previous.y)).toBeLessThan(6)
+      expect(Math.abs(next.enterVh - previous.enterVh)).toBeLessThan(6)
       expect(Math.abs(next.scale - previous.scale)).toBeLessThan(0.05)
       expect(Math.abs(next.opacity - previous.opacity)).toBeLessThan(0.1)
       previous = next
