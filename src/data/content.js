@@ -42,7 +42,7 @@ const en = {
     line: 'builds data-driven systems.',
     roles: ['predictive modeling', 'data engineering', 'machine learning', 'data pipelines'],
     sentencePrefix: 'Data & AI Engineering student focused on',
-    sentenceSuffix: '— turning data into models that ship, from pipelines to prediction.',
+    sentenceSuffix: '- turning data into models that ship, from pipelines to prediction.',
     viewProjects: 'View Projects →',
     getInTouch: 'Get in touch',
     scrollLabel: 'Scroll to content',
@@ -52,8 +52,8 @@ const en = {
     label: '// 01 — ABOUT',
     heading: 'I make sense of messy data.',
     paragraphs: [
-      "I'm a final-year engineering student in Data & AI. Most of my work starts the same way: a folder of spreadsheets nobody trusts, and a deadline. I build the pipeline that fixes that, then the model that uses it.",
-      "I care most about data engineering and predictive modeling — less about the theory, more about whether the thing actually runs in production. I spent my last internship doing exactly that at SPI International (Canal+ Group).",
+      "I'm a final-year engineering student in Data & AI. Most of my work starts the same way: a lost spreadsheet that spawned a few ideas in my head. I then build the pipeline to fix that, then the model that uses it.",
+      "I care most about data or software engineering and predictive modeling. Briefly speaking, less about the theory, and more about whether the thing actually runs in production.",
     ],
     tags: [
       { icon: 'briefcase', label: 'Ex-SPI International (Canal+)' },
@@ -174,7 +174,7 @@ const fr = {
     line: 'fait parler les données.',
     roles: ['modélisation prédictive', 'data engineering', 'machine learning', 'pipelines de données'],
     sentencePrefix: 'Étudiant-ingénieur en Data & IA, spécialisé en',
-    sentenceSuffix: '— je transforme les données en modèles qui tournent en production, du pipeline à la prédiction.',
+    sentenceSuffix: '- je transforme les données en modèles qui tournent en production, du pipeline à la prédiction.',
     viewProjects: 'Voir les projets →',
     getInTouch: 'Me contacter',
     scrollLabel: 'Défiler vers le contenu',
@@ -184,8 +184,8 @@ const fr = {
     label: '// 01 — À PROPOS',
     heading: 'Je remets de l\'ordre dans les données.',
     paragraphs: [
-      "Étudiant-ingénieur en dernière année, spécialisation Data & IA. Mes missions commencent presque toujours pareil : un tableur que plus personne ne veut ouvrir, et une échéance. Je construis le pipeline qui répare ça, puis le modèle qui s'en sert.",
-      "Ce qui m'intéresse vraiment, c'est le data engineering et la modélisation prédictive — moins la théorie, plus la question de savoir si le modèle tourne encore une fois en prod. C'est exactement ce que j'ai fait pendant mon stage chez SPI International (Groupe Canal+).",
+      "Étudiant-ingénieur en dernière année, spécialisation Data & IA. Mes missions commencent presque toujours pareil : un tableur qui fait apparaitre des idées dans ma tête. Je construis ensuite le pipeline qui le répare, puis le modèle qui s'en sert.",
+      "Ce qui m'intéresse vraiment, c'est le data et software engineering et la modélisation prédictive. Autrement dit, moins la théorie, plus la question de savoir si le modèle tourne encore une fois déployé. ",
     ],
     tags: [
       { icon: 'briefcase', label: 'Ex-SPI International (Canal+)' },
