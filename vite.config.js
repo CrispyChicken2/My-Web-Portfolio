@@ -1,18 +1,18 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Everything is self-hosted (fonts included) except the ShaderGradient env
-// lighting (envPreset="city"), which fetches its HDR maps from the library's
-// GitHub Pages host — that single origin is allowed in connect-src.
+// Everything the site loads comes from its own origin — fonts, images and the
+// Field's shader alike — so the policy permits no external origin at all.
 // 'unsafe-inline' for styles is required by the React style props used across
-// the site; blob: images are the user-dropped photos in ImageSlot.
+// the site; blob: and data: images cover inline SVG icons and object URLs.
 const csp = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self' https://ruucm.github.io",
+  "connect-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -35,4 +35,11 @@ export default defineConfig({
       },
     },
   ],
+
+  // Vitest reuses this config, so tests run through the same transform
+  // pipeline as the build — no second build path and no extra runtime dep.
+  test: {
+    include: ['src/**/*.test.{js,jsx}'],
+    environment: 'node',
+  },
 })

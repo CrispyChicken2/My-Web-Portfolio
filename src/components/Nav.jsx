@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useLang } from '../i18n'
-import LiquidLayer from './GlassBox'
+import { useField } from '../field/FieldContext'
 
 export default function Nav() {
   const { lang, setLang, t } = useLang()
+  const { live, bus } = useField()
+  const barRef = useRef(null)
   const [active, setActive] = useState('about')
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -18,6 +20,55 @@ export default function Nav() {
     .join('')
     .slice(0, 2)
     .toUpperCase()
+
+  // The bar's rectangle is the only thing the Field needs in order to refract
+  // exactly the region the bar covers. It is published on a mutable bus rather
+  // than in state — the renderer reads it every frame and must never make the
+  // nav re-render. Because the composite samples the live Field, a language switch
+  // needs nothing here: there is no snapshot to go stale.
+  useLayoutEffect(() => {
+    const bar = barRef.current
+    if (!bar) return undefined
+
+    let raf = 0
+    const publish = () => {
+      const rect = bar.getBoundingClientRect()
+      bus.navRect = {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        radius: rect.height / 2,
+      }
+      bus.requestRender()
+    }
+
+    // Follow the bar for a moment whenever it changes size or shape, so the
+    // refracted region tracks the shrink transition instead of jumping.
+    const follow = (until) => {
+      cancelAnimationFrame(raf)
+      const step = () => {
+        publish()
+        if (performance.now() < until) raf = requestAnimationFrame(step)
+      }
+      step()
+    }
+
+    publish()
+    const observer = new ResizeObserver(() => follow(performance.now() + 420))
+    observer.observe(bar)
+    window.addEventListener('resize', publish)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      observer.disconnect()
+      window.removeEventListener('resize', publish)
+      bus.navRect = null
+    }
+    // No need to re-run this for `scrolled`, `open` or `lang`: the bar's box
+    // is set by the viewport, not by its content, and the ResizeObserver
+    // catches the cases where that is not true.
+  }, [bus])
 
   useEffect(() => {
     const ids = ['about', 'skills', 'projects', 'experience']
@@ -58,20 +109,32 @@ export default function Nav() {
     }
   }, [open])
 
+  // Over the live Field the bar is nearly bodiless — what fills it is the
+  // Field refracted through it. Without the Field it keeps its flat Pill
+  // background and stays exactly as usable.
+  const background = live
+    ? 'var(--nav-bg-live)'
+    : scrolled
+      ? 'var(--nav-bg-scrolled)'
+      : 'var(--nav-bg)'
+
   return (
     <nav
+      ref={barRef}
       aria-label={t.nav.primary}
-      className="fixed left-1/2 top-3 z-50 flex w-[calc(100%-20px)] max-w-[1120px] -translate-x-1/2 items-center justify-between rounded-full border border-white/[0.1] py-2 pl-4 pr-2.5 backdrop-blur-xl backdrop-saturate-150 transition-colors duration-300 sm:pl-5"
+      className={`fixed left-1/2 top-3 z-50 flex w-[calc(100%-20px)] max-w-[1120px] -translate-x-1/2 items-center justify-between rounded-full py-2 pl-4 pr-2.5 transition-colors duration-300 sm:pl-5 ${
+        live ? '' : 'backdrop-blur-xl backdrop-saturate-150'
+      }`}
       style={{
-        background: scrolled ? 'rgba(10,14,22,0.72)' : 'var(--nav-bg)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1), 0 12px 32px rgba(4,2,10,0.4)',
+        background,
+        border: '1px solid var(--edge)',
+        boxShadow: 'inset 0 1px 0 var(--sheen-1), 0 12px 32px var(--nav-shadow)',
       }}
     >
-      <LiquidLayer type="pill" mode="tint" delay={2800} tint={0.1} />
       <a href="#top" className="flex items-center gap-2.5 text-fg no-underline">
         <span
           className="grid h-[34px] w-[34px] place-items-center rounded-full font-mono text-[15px] font-bold tracking-[-1px] transition-transform duration-200 hover:rotate-[-6deg]"
-          style={{ background: 'linear-gradient(135deg,var(--acc),var(--acc-deep))', color: 'var(--ink)' }}
+          style={{ background: 'linear-gradient(135deg,var(--ice),var(--ice-deep))', color: 'var(--bg)' }}
         >
           {initials}
         </span>
@@ -86,13 +149,14 @@ export default function Nav() {
                 href={`#${link.id}`}
                 aria-current={active === link.id ? 'true' : undefined}
                 className={`relative inline-block rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  active === link.id ? 'text-accent' : 'text-dim hover:text-fg'
+                  active === link.id ? 'text-signal' : 'text-dim hover:text-fg'
                 }`}
               >
                 {active === link.id && (
                   <motion.span
                     layoutId="nav-pill"
-                    className="absolute inset-0 -z-10 rounded-lg border border-white/[0.08] bg-white/[0.06]"
+                    className="absolute inset-0 -z-10 rounded-lg"
+                    style={{ border: '1px solid var(--edge)', background: 'var(--surf-2)' }}
                     transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                   />
                 )}
@@ -106,7 +170,8 @@ export default function Nav() {
         <div
           role="group"
           aria-label="Language"
-          className="flex items-center gap-0.5 rounded-full border border-white/[0.1] p-0.5 font-mono text-[11.5px]"
+          className="flex items-center gap-0.5 rounded-full p-0.5 font-mono text-[11.5px]"
+          style={{ border: '1px solid var(--edge)' }}
         >
           {['en', 'fr'].map((l) => (
             <button
@@ -114,9 +179,12 @@ export default function Nav() {
               type="button"
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
-              className={`rounded-full px-2 py-1 uppercase transition-colors ${
-                lang === l ? 'bg-white/[0.1] text-fg' : 'text-dim hover:text-fg'
-              }`}
+              className="rounded-full px-2 py-1 uppercase transition-colors"
+              style={
+                lang === l
+                  ? { background: 'var(--surf-2)', color: 'var(--fg1)' }
+                  : { color: 'var(--fg4)' }
+              }
             >
               {l}
             </button>
@@ -125,8 +193,7 @@ export default function Nav() {
 
         <a
           href="#contact"
-          className="lg-cta rounded-full px-4 py-2 text-sm font-semibold text-white shadow-[0_6px_20px_rgba(255,129,10,0.25)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(255,129,10,0.42)] active:scale-[0.96]"
-          style={{ backgroundColor: 'rgba(255,138,46,0.66)' }}
+          className="lg-pill rounded-full px-4 py-2 text-sm font-semibold text-fg transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.96]"
         >
           {t.nav.contact}
         </a>
@@ -137,7 +204,8 @@ export default function Nav() {
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={() => setOpen((v) => !v)}
-          className="relative grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/5 md:hidden"
+          className="relative grid h-9 w-9 place-items-center rounded-lg md:hidden"
+          style={{ border: '1px solid var(--edge)', background: 'var(--surf-1)' }}
         >
           <span className="relative block h-[14px] w-[18px]">
             <motion.span className="absolute left-0 block h-[2px] w-full rounded-full bg-fg" animate={open ? { top: 6, rotate: 45 } : { top: 0, rotate: 0 }} transition={{ duration: 0.25 }} />
@@ -151,8 +219,12 @@ export default function Nav() {
         {open && (
           <motion.div
             id="mobile-menu"
-            className="absolute inset-x-0 top-[calc(100%+10px)] z-40 rounded-2xl border border-white/[0.08] px-4 py-4 backdrop-blur-xl md:hidden"
-            style={{ background: 'rgba(6,8,13,0.94)', boxShadow: '0 20px 50px rgba(2,3,6,0.5)' }}
+            className="absolute inset-x-0 top-[calc(100%+10px)] z-40 rounded-2xl px-4 py-4 backdrop-blur-xl md:hidden"
+            style={{
+              background: 'var(--panel-glass-subtle)',
+              border: '1px solid var(--edge)',
+              boxShadow: '0 20px 50px var(--shadow)',
+            }}
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
@@ -171,8 +243,9 @@ export default function Nav() {
                     onClick={() => setOpen(false)}
                     aria-current={active === link.id ? 'true' : undefined}
                     className={`block rounded-lg px-3 py-3 text-[15px] font-medium transition-colors ${
-                      active === link.id ? 'bg-white/[0.06] text-accent' : 'text-dim hover:bg-white/[0.04] hover:text-fg'
+                      active === link.id ? 'text-signal' : 'text-dim hover:text-fg'
                     }`}
+                    style={active === link.id ? { background: 'var(--surf-2)' } : undefined}
                   >
                     {link.label}
                   </a>

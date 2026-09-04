@@ -35,3 +35,6 @@ pnpm-debug.log*
 # Anciennes itérations conservées en local uniquement
 _archive/
 .claude/
+
+# Notes de session conservées en local uniquement
+docs/grilling-frontend-redesign.md

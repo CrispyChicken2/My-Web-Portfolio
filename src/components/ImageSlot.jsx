@@ -3,15 +3,19 @@ import { MapIcon } from './icons'
 
 // Display-only picture frame. Renders the static image shipped in
 // public/assets (the `src` prop); if that file is missing it falls back to a
-// designed cover tile (tinted gradient + icon or initials).
+// designed cover tile — a designed state, not an error state.
 // Purely presentational — visitors cannot click, focus or replace it.
 // To change a picture: replace the file in public/assets, keeping the name.
+//
+// `tone` is a Tone: a step on the cold scale, 1 (deepest) to 3 (shallowest).
+// Tones differ by depth and intensity, never by hue, and a Tone is never the
+// Signal — so no slot reads as more important than another.
 
 export default function ImageSlot({
   src = null,
   alt = '',
   placeholder = null,
-  tone = '#73bfc4',
+  tone = 2,
   radius = 12,
   className = '',
   style = {},
@@ -27,18 +31,17 @@ export default function ImageSlot({
     img.src = src
   }, [src])
 
-  const n = parseInt(tone.slice(1), 16)
-  const rgb = `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`
+  const step = tone === 1 || tone === 3 ? tone : 2
 
   return (
     <div
       className={`relative grid place-items-center overflow-hidden text-center ${className}`}
       style={{
         borderRadius: radius,
-        border: `1px solid rgba(${rgb},0.25)`,
+        border: `1px solid var(--tone-${step}-edge)`,
         background: ok
           ? 'var(--win-body)'
-          : `linear-gradient(160deg, rgba(${rgb},0.24), rgba(${rgb},0.05) 70%)`,
+          : `linear-gradient(160deg, var(--tone-${step}-bg), transparent 72%)`,
         ...style,
       }}
     >
@@ -54,8 +57,8 @@ export default function ImageSlot({
       ) : (
         <span
           aria-hidden="true"
-          className="leading-none drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]"
-          style={{ color: tone }}
+          className="leading-none"
+          style={{ color: `var(--tone-${step}-fg)` }}
         >
           {placeholder ?? <MapIcon size={30} />}
         </span>

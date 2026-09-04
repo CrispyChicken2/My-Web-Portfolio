@@ -1,14 +1,16 @@
-// Static gradient wash — instant first paint before the shader chunk loads,
-// and the permanent fallback when WebGL is unavailable.
+// The designed flat Backdrop: the instant first paint before the Field's chunk
+// arrives, and the permanent stand-in when WebGL is unavailable. It is a
+// deliberate composition in the same cold scale, not an empty page.
 export default function FlatBackdrop() {
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-0"
       style={{
-        background: `radial-gradient(60% 50% at 72% 18%, rgba(115,191,196,0.16), transparent 60%),
-          radial-gradient(55% 45% at 20% 78%, rgba(255,129,10,0.1), transparent 62%),
-          linear-gradient(165deg, var(--wall-1) 0%, var(--wall-2) 55%, var(--wall-3) 100%)`,
+        background: `radial-gradient(58% 46% at 70% 16%, var(--flat-1), transparent 62%),
+          radial-gradient(52% 42% at 18% 76%, var(--flat-2), transparent 64%),
+          radial-gradient(120% 100% at 50% 40%, transparent 52%, var(--flat-vignette) 100%),
+          linear-gradient(168deg, var(--wall-1) 0%, var(--wall-2) 56%, var(--wall-3) 100%)`,
       }}
     />
   )

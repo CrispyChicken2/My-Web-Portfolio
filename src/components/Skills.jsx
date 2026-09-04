@@ -10,10 +10,26 @@ const ICONS = {
   globe: GlobeIcon,
 }
 
+// A Group's Tone is a step on the cold scale. The Tones differ by depth and
+// intensity, never by hue, so the Groups are distinguishable at a glance
+// without any of them reading as more important than the others — and none of
+// them is ever the Signal.
 const TAG_TONE = {
-  green: { background: 'rgba(79,155,161,0.18)', border: '1px solid rgba(115,191,196,0.3)', color: '#e7f4f5' },
-  olive: { background: 'rgba(141,160,206,0.14)', border: '1px solid rgba(141,160,206,0.32)', color: '#eaeef8' },
-  neutral: { background: 'rgba(238,241,246,0.05)', border: '1px solid rgba(238,241,246,0.11)', color: 'var(--fg2)' },
+  green: {
+    background: 'var(--tone-1-bg)',
+    border: '1px solid var(--tone-1-edge)',
+    color: 'var(--tone-1-fg)',
+  },
+  olive: {
+    background: 'var(--tone-2-bg)',
+    border: '1px solid var(--tone-2-edge)',
+    color: 'var(--tone-2-fg)',
+  },
+  neutral: {
+    background: 'var(--tone-3-bg)',
+    border: '1px solid var(--tone-3-edge)',
+    color: 'var(--tone-3-fg)',
+  },
 }
 
 // Varied column spans (out of 6) so the groups form an asymmetric mosaic
@@ -26,7 +42,7 @@ export default function Skills() {
   return (
     <section id="skills" className="relative z-[1] mx-auto max-w-content px-6 py-24 sm:px-10">
       <Reveal className="mb-11">
-        <div>
+        <div className="on-field">
           <div className="mono-label mb-3">{t.skills.label}</div>
           <h2 className="m-0 max-w-[18ch] font-display text-[clamp(28px,3.4vw,42px)] font-bold tracking-[-1px]">
             {t.skills.heading}
@@ -39,8 +55,11 @@ export default function Skills() {
           const Icon = ICONS[group.icon] || CpuIcon
           return (
           <Reveal key={group.group} delay={idx * 0.06} blur className={SPAN[idx % SPAN.length]}>
-            <div className="glass-strong panel-glass h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/30 hover:shadow-[0_16px_40px_rgba(0,0,0,0.4)]">
-              <div className="mb-3.5 grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.05] text-accent">
+            <div className="glass-strong panel-glass h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-ice/30">
+              <div
+                className="mb-3.5 grid h-9 w-9 place-items-center rounded-lg text-ice"
+                style={{ border: '1px solid var(--edge)', background: 'var(--surf-1)' }}
+              >
                 <Icon size={18} />
               </div>
               <h3 className="m-0 mb-4 font-display text-lg font-semibold">{group.group}</h3>

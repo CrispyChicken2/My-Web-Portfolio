@@ -71,10 +71,20 @@ component styles.
 _Avoid_: variable, theme value, palette entry
 
 **Backdrop**:
-The full-screen animated gradient sitting behind every Section. It is
-decorative: it never carries meaning, and the site must stay fully readable
-when it fails to render or the Visitor prefers reduced motion.
+The full-screen animated layer sitting behind every Section. It responds to
+continuous Visitor input — where the cursor is, how fast the page is
+scrolling — but it still carries no meaning: no Visitor could read any state
+off it, and it never indicates which Section is active. It is decorative, and
+the site must stay fully readable when it fails to render or the Visitor
+prefers reduced motion.
 _Avoid_: background (ambiguous with a Panel's own background), hero background
+
+**Field**:
+What the Backdrop depicts: a slow, drifting expanse with sparse points
+suspended at different depths above it. The Field is the only place on the
+site where colour is allowed to be lavish, which is what lets the content
+layer stay austere.
+_Avoid_: gradient, particles, shader
 
 **Panel**:
 A content container within a Section. Each Panel picks one transparency
@@ -89,8 +99,10 @@ _Avoid_: blur, frost
 
 **Liquid glass**:
 The real refractive effect, used on the navigation bar and nowhere else. It is
-the site's single deliberate WebGL indulgence, so "add liquid glass to X" is a
-proposal to add a second one and should be challenged.
+not a layer of its own: it is the Field seen through a distorting region where
+the nav sits, which is why it refracts what is genuinely behind it at that
+instant. The site has exactly one WebGL surface, so "add liquid glass to X" is
+a proposal to widen that surface and should be challenged.
 _Avoid_: glass effect, shader glass
 
 **Pill**:
@@ -104,7 +116,30 @@ when that image is absent. The fallback is a designed state, not an error
 state.
 _Avoid_: image placeholder, thumbnail
 
+**Deck**:
+How the Projects Section presents its Projects: each one rests at the top of
+the viewport while the next rises over it, the covered Project receding behind.
+Every Project is reached by scrolling down, so the Deck adds no second way to
+navigate and hides nothing from a Visitor who only skims.
+_Avoid_: carousel, slider, stack
+
+**Signal**:
+The one warm accent, reserved for the few things the site actually wants
+pressed or read. Its scarcity is the whole point: a second Signal, or a
+decorative use of the first, spends it.
+_Avoid_: accent, highlight (a Highlight is something else — see above), CTA
+colour
+
 **Tone**:
-The accent colour assigned to a Group or an Image slot so related things read
-as related. A Tone is decorative grouping, never status or severity.
+The step on the cold scale assigned to a Group or an Image slot so related
+things read as related. Tones differ by depth and intensity, never by hue, and
+a Tone is never the Signal. A Tone is decorative grouping, never status or
+severity.
 _Avoid_: colour, variant, status
+
+**Zoom moment**:
+One of the small number of places where the site deliberately changes scale as
+the Visitor scrolls. They are counted and chosen, not a rule applied to every
+Section — so "zoom this in too" is a proposal to spend one, and should be
+challenged.
+_Avoid_: scale animation, parallax, transition

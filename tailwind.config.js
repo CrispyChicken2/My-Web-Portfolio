@@ -9,8 +9,9 @@ export default {
         fg: 'var(--fg1)', // primary text
         mute: 'var(--fg3)', // body text
         dim: 'var(--fg4)', // secondary text
-        accent: 'rgb(var(--acc-rgb) / <alpha-value>)', // primary accent
-        ink: 'var(--ink)', // text on accent surfaces
+        ice: 'rgb(var(--ice-rgb) / <alpha-value>)', // ice-cyan — the cold scale's brightest step
+        signal: 'rgb(var(--sig-rgb) / <alpha-value>)', // the Signal — actionable things only
+        ink: 'var(--ink)', // text on Signal surfaces
       },
       fontFamily: {
         display: ['"Archivo"', 'system-ui', 'sans-serif'],

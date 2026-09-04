@@ -1,6 +1,5 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { locales } from './data/content'
-import { refreshLiquidGlass } from './components/GlassBox'
 
 // Tiny i18n: `useLang()` returns the active locale dictionary plus the
 // switcher. First visit follows the browser language; the choice is then
@@ -22,7 +21,6 @@ function initialLang() {
 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(initialLang)
-  const firstRender = useRef(true)
 
   useEffect(() => {
     document.documentElement.lang = lang
@@ -34,15 +32,6 @@ export function LanguageProvider({ children }) {
     }
   }, [lang])
 
-  // The liquid-glass layers refract a frozen page snapshot — retake it once
-  // the page has re-rendered in the new language.
-  useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false
-      return
-    }
-    refreshLiquidGlass()
-  }, [lang])
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t: locales[lang] }}>
