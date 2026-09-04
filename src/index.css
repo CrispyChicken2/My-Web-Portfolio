@@ -293,6 +293,14 @@
      ------------------------------------------------------------------- */
   .deck {
     --deck-vh: 1vh;
+    /* What a Panel is: one height the site chose, a nudge up from exact
+       centre because a card at the mathematical middle reads as sitting
+       low, and the breathing room a Panel keeps from the header above it
+       and the foot of the pane below. Retuning the Panel is this one
+       value; the two that follow it are tuned by eye. */
+    --panel-h: 600px;
+    --panel-lift: 20px;
+    --panel-gap: 24px;
     height: calc(var(--deck-stages) * 100vh);
   }
   .deck-pane {
@@ -305,6 +313,57 @@
     }
     .deck-pane {
       height: 100svh;
+    }
+  }
+
+  /* Where a Panel rests. Below lg it fills the space under the header, as
+     it always has: that layout stacks the Image slot under the text and
+     needs its content height, and a phone viewport has no window size to
+     be independent of.
+
+     At lg and up a Panel stops following the window. It is a constant
+     --panel-h, positioned out of the header's flow so that it centres on
+     the viewport rather than on the leftover space beneath the heading —
+     which is the low position this replaces.
+
+     The viewport centre is derived, not measured. These panels live in the
+     box that fills the pane below the header, so inside it 100% is exactly
+     "the pane minus the header" — which is what lets the centre be written
+     without anything here knowing how tall the header is:
+
+       viewport centre − half a Panel − the optical nudge
+         = 100% − 50 viewport heights − half a Panel − the nudge
+
+     The max() is the rule that the header always wins. The header carries
+     the counter and the ticks, the only sign of where the Visitor is in
+     the set, so a Panel stops at its edge rather than climbing under it —
+     and on a window too short for that, max-height makes the Panel give up
+     height instead. That rescue is measured against the space the header
+     leaves, not against a fraction of the window, so it says the same
+     thing the max() does. It is meant to fire rarely; if it fires on a
+     window in daily use, --panel-h is too large rather than this too
+     eager. */
+  .deck-panels {
+    position: relative;
+    height: 100%;
+  }
+  @media (min-width: 1024px) {
+    .deck-panels {
+      position: absolute;
+      /* The pane's own gutter, restated. Coming out of the flow means
+         coming out of the padding with it: an absolutely positioned box
+         resolves left/right against the padding box, so left: 0 would put
+         a Panel against the window edge while the header above it stayed
+         inset. Above sm the gutter is a constant 2.5rem, and lg is above
+         sm, so this block only ever needs the one value. */
+      left: 2.5rem;
+      right: 2.5rem;
+      height: var(--panel-h);
+      max-height: calc(100% - var(--panel-gap) * 2);
+      top: max(
+        var(--panel-gap),
+        calc(100% - 50 * var(--deck-vh) - var(--panel-h) / 2 - var(--panel-lift))
+      );
     }
   }
 

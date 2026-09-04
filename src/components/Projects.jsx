@@ -182,7 +182,11 @@ function Deck({ label, heading, items, altFor }) {
       style={{ '--deck-stages': deckSectionViewports(count) }}
     >
       <div className="deck-pane sticky top-0 flex flex-col overflow-hidden">
-        <div className="on-field mx-auto flex w-full max-w-content items-end justify-between gap-6 px-6 pb-6 pt-28 sm:px-10">
+        {/* The top padding clears the floating Nav, which ends 68px down, and
+            nothing more: every pixel of header band is paid for twice over by
+            the Panel below it, which can only centre on the viewport once the
+            header leaves it room on both sides of the middle. */}
+        <div className="on-field mx-auto flex w-full max-w-content items-end justify-between gap-6 px-6 pb-6 pt-24 sm:px-10">
           <div>
             <div className="mono-label mb-3">{label}</div>
             <h2 className="m-0 max-w-[20ch] font-display text-[clamp(26px,3.2vw,40px)] font-bold tracking-[-1px]">
@@ -215,8 +219,8 @@ function Deck({ label, heading, items, altFor }) {
           </div>
         </div>
 
-        <div className="mx-auto w-full max-w-content flex-1 px-6 pb-10 sm:px-10">
-          <div className="relative h-full">
+        <div className="relative mx-auto w-full max-w-content flex-1 px-6 pb-10 sm:px-10">
+          <div className="deck-panels">
             {items.map((project, index) => (
               <DeckCard
                 key={project.title}

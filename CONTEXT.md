@@ -116,8 +116,13 @@ state.
 _Avoid_: image placeholder, thumbnail
 
 **Deck**:
-How the Projects Section presents its Projects: each one rests at the top of
-the viewport while the next rises over it, the covered Project receding behind.
+How the Projects Section presents its Projects: on a desktop each one rests at
+a constant size near the centre of the viewport while the next rises over it
+from below, the covered Project climbing as it recedes behind. A Project is
+the size the site chose for it rather than a slice of the window, so the same
+Project is the same object from one machine to the next; it gives up height
+only on a window too short to show it and the Deck's heading at once. A phone
+keeps the stacked layout, where a Project is as tall as its content.
 The Deck always rests ON a Project and never between two — scrolling chooses
 which one, and the movement there is a single, complete travel rather than
 something dragged along by the wheel. Every Project is reached by scrolling
