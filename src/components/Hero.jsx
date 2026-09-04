@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'framer-motion'
 import { useLang } from '../i18n'
-import { blurFilter, heroDolly } from '../motion/params'
+import { ZOOM_SPRING, blurFilter, heroDolly } from '../motion/params'
 
 // Types out a string character by character, then leaves a blinking cursor.
 function Typewriter({ text, className = '', startDelay = 450, speed = 45 }) {
@@ -52,10 +59,11 @@ export default function Hero() {
   // the Visitor rather than sliding away, so the move reads as forward through
   // depth. The numbers are the motion module's, not this component's.
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
-  const scale = useTransform(scrollYProgress, (p) => heroDolly(p).scale)
-  const opacity = useTransform(scrollYProgress, (p) => heroDolly(p).opacity)
-  const y = useTransform(scrollYProgress, (p) => heroDolly(p).y)
-  const filter = useTransform(scrollYProgress, (p) => blurFilter(heroDolly(p).blur))
+  const progress = useSpring(scrollYProgress, ZOOM_SPRING)
+  const scale = useTransform(progress, (p) => heroDolly(p).scale)
+  const opacity = useTransform(progress, (p) => heroDolly(p).opacity)
+  const y = useTransform(progress, (p) => heroDolly(p).y)
+  const filter = useTransform(progress, (p) => blurFilter(heroDolly(p).blur))
 
   useEffect(() => {
     if (reduceMotion) return

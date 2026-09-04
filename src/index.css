@@ -8,29 +8,36 @@
      resolves from this block; no component carries a colour of its own,
      so retheming the whole site is one edit here.
 
+     The site is DARK: pale text on deep surfaces, over a Backdrop that
+     runs at full strength. Text sitting directly on the Backdrop carries
+     a dark halo rather than the Backdrop being dimmed to accommodate it
+     — see docs/adr/0004-dark-content-layer.md.
+
      Two families, and only two:
-       · the cold scale — a desaturated ice-cyan, deliberately pulled
-         toward grey-blue so it never competes with the Signal. It
-         carries every surface and every string.
-       · the Signal — one acid lime, spent only on the Hero calls to
-         action, the active nav item, and a Project's Highlight. It
-         separates from the cold scale by chroma and value, not hue
-         alone. Never decorative, and never a Tone.
+       · the cold scale — a desaturated ice-cyan running from near-white
+         down to faint. It carries every surface and every string.
+       · the Signal — one acid lime, one value, spent only on the Hero
+         calls to action, the active nav item, and a Project's Highlight.
+         Never decorative, and never a Tone.
+
+     The Backdrop's own colours are NOT here: it is a third-party preset
+     and takes them as props. See src/components/ShaderBackdrop.jsx.
      ================================================================== */
   :root {
     /* --- page ------------------------------------------------------ */
-    --bg: #04070a;
-    --wall-1: #0a0f14;
-    --wall-2: #060a0e;
-    --wall-3: #030508;
+    /* Seen before the Backdrop's chunk lands, and behind it if it fails. */
+    --bg: #0d0d12;
+    --wall-1: #17161f;
+    --wall-2: #0f0e15;
+    --wall-3: #08080c;
 
-    /* --- the cold scale (1 = brightest) ---------------------------- */
-    --fg1: #e8eff2;
-    --fg2: #c3d2d8;
-    --fg3: #a5b7bf;
-    --fg4: #869aa4;
-    --fg5: #718791;
-    --fg8: #47585f;
+    /* --- the cold scale (1 = brightest, 8 = faintest) --------------- */
+    --fg1: #eef1f6;
+    --fg2: #cbd4dc;
+    --fg3: #a9b6c0;
+    --fg4: #8b99a5;
+    --fg5: #7a8894;
+    --fg8: #58626e;
 
     /* Ice-cyan, the accent step of the cold scale: Labels, icons and
        hairline emphasis. Not the Signal — it never means "actionable". */
@@ -39,36 +46,36 @@
     --ice-rgb: 143 189 196;
 
     /* --- the Signal ------------------------------------------------ */
+    /* One hue, one value. On a dark page the bright lime is legible both
+       as text and as a filled surface, so the split the light theme
+       needed is gone. */
     --sig: #c9f24d;
     --sig-deep: #a5cf27;
     --sig-rgb: 201 242 77;
     --ink: #0d1403; /* text on Signal surfaces */
 
     /* --- surfaces -------------------------------------------------- */
-    --win: #0d141a; /* card chrome */
-    --win-body: #06090d; /* content wells */
-    --edge: rgba(232, 239, 242, 0.1); /* hairline */
-    --edge-strong: rgba(232, 239, 242, 0.17);
-    --surf-1: rgba(232, 239, 242, 0.04);
-    --surf-2: rgba(232, 239, 242, 0.07);
-    --sheen-1: rgba(232, 239, 242, 0.12);
-    --sheen-2: rgba(232, 239, 242, 0.03);
-    --shadow: rgba(2, 4, 6, 0.55);
-    --shadow-deep: rgba(2, 4, 6, 0.62);
+    --win: #16151d; /* card chrome */
+    --win-body: #0b0a10; /* content wells */
+    --edge: rgba(238, 241, 246, 0.11); /* hairline */
+    --edge-strong: rgba(238, 241, 246, 0.18);
+    --surf-1: rgba(238, 241, 246, 0.05);
+    --surf-2: rgba(238, 241, 246, 0.08);
+    --sheen-1: rgba(238, 241, 246, 0.12);
+    --sheen-2: rgba(238, 241, 246, 0.03);
+    --shadow: rgba(4, 3, 8, 0.55);
+    --shadow-deep: rgba(4, 3, 8, 0.65);
 
     /* translucent Panels (the blur carries the readability) */
-    --panel-solid: #0b1218;
-    --panel-glass: rgba(11, 18, 24, 0.5);
-    --panel-glass-subtle: rgba(9, 15, 20, 0.86);
+    --panel-solid: #14131b;
+    --panel-glass: rgba(17, 16, 24, 0.55);
+    --panel-glass-subtle: rgba(12, 11, 17, 0.88);
 
     /* --- navigation bar -------------------------------------------- */
-    /* Flat Pill appearance — also the fallback when the Field is absent. */
-    --nav-bg: rgba(7, 12, 17, 0.46);
-    --nav-bg-scrolled: rgba(7, 12, 17, 0.74);
-    /* Over the live Field the bar refracts rather than tints, so it keeps
-       only enough body to hold its text off the Field. */
-    --nav-bg-live: rgba(7, 12, 17, 0.12);
-    --nav-shadow: rgba(2, 4, 6, 0.45);
+    /* A Pill: flat CSS that imitates glass. Nothing samples the Backdrop. */
+    --nav-bg: rgba(13, 12, 19, 0.5);
+    --nav-bg-scrolled: rgba(13, 12, 19, 0.78);
+    --nav-shadow: rgba(4, 3, 8, 0.45);
 
     /* --- Tones ----------------------------------------------------- */
     /* A Tone is a step on the cold scale. Tones differ by depth and
@@ -76,59 +83,51 @@
        another — and a Tone is never the Signal. */
     --tone-1-bg: rgba(143, 189, 196, 0.16);
     --tone-1-edge: rgba(143, 189, 196, 0.34);
-    --tone-1-fg: #dcecef;
+    --tone-1-fg: #e2f0f2;
     --tone-2-bg: rgba(143, 189, 196, 0.09);
-    --tone-2-edge: rgba(143, 189, 196, 0.22);
-    --tone-2-fg: #cbdde1;
+    --tone-2-edge: rgba(143, 189, 196, 0.21);
+    --tone-2-fg: #cfe0e4;
     --tone-3-bg: rgba(143, 189, 196, 0.045);
     --tone-3-edge: rgba(143, 189, 196, 0.13);
     --tone-3-fg: var(--fg2);
 
-    /* --- the Field ------------------------------------------------- */
-    /* Read by the shader (src/field/palette.js) — plain hex only. */
-    --field-ink: #04070a;
-    --field-deep: #0a2831;
-    --field-mid: #17545f;
-    --field-glow: #74c2cb;
-    --field-point: #dcf1f5;
-    --field-nav-tint: #08101a;
+    /* --- the Backdrop ---------------------------------------------- */
+    /* The flat fallback, in the preset's own colours so it stands in for
+       what it replaces. Keep these in step with the props in
+       src/components/ShaderBackdrop.jsx. */
+    --flat-1: rgba(141, 125, 202, 0.3);
+    --flat-2: rgba(96, 96, 128, 0.28);
+    --flat-vignette: rgba(6, 5, 10, 0.72);
 
-    /* Text that sits directly on the Field carries its own dark halo. The
-       scrim alone cannot make the Field's brightest patches safe for body
-       text without flattening the Field entirely; this does it locally,
-       behind the glyphs, where it costs the Field nothing. */
-    --field-halo: rgba(4, 7, 10, 0.92);
-    --field-halo-soft: rgba(4, 7, 10, 0.78);
-
-    /* the flat Backdrop, in the same scale */
-    --flat-1: rgba(116, 194, 203, 0.14);
-    --flat-2: rgba(23, 84, 95, 0.16);
-    --flat-vignette: rgba(2, 4, 7, 0.7);
+    /* Text sitting directly on the Backdrop carries its own dark halo,
+       so the Backdrop can stay at full strength where the content is
+       not. A scrim would flatten it; this is local to the glyphs. */
+    --halo: rgba(8, 7, 14, 0.92);
+    --halo-soft: rgba(8, 7, 14, 0.75);
 
     /* --- where those colours land ---------------------------------- */
-    /* The scroll indicator, the focus ring and the selection colour are all
-       cold scale. They are states and decoration, not the three places the
-       Signal is reserved for — spending it here would make it mean
-       "actionable", "focused", "selected" and "scroll position" at once. */
+    /* The scroll indicator, the focus ring and the selection colour are
+       all cold scale. They are states and decoration, not the three
+       places the Signal is reserved for. */
     --progress: linear-gradient(90deg, var(--ice-deep), var(--ice) 70%, var(--fg1));
-    --cursor: var(--sig); /* Hero typewriter caret */
-    --cta-bg: rgba(201, 242, 77, 0.92);
-    --cta-bg-hover: rgba(211, 247, 104, 0.96);
+    --cursor: var(--ice); /* Hero typewriter caret — decoration, so never the Signal */
+    --cta-bg: var(--sig);
+    --cta-bg-hover: #d5f76b;
     --cta-fg: var(--ink);
     --cta-shadow: rgba(201, 242, 77, 0.2);
-    --cta-shadow-hover: rgba(201, 242, 77, 0.34);
+    --cta-shadow-hover: rgba(201, 242, 77, 0.32);
     --card-glow: rgba(143, 189, 196, 0.1); /* Project card cursor glow */
     --card-index: rgba(143, 189, 196, 0.28);
     --label-rule: rgba(143, 189, 196, 0.5);
     --dot-active: var(--ice);
     --dot-active-glow: rgba(143, 189, 196, 0.5);
     --dot-idle: var(--fg8);
-    --ring: rgba(143, 189, 196, 0.85);
+    --ring: rgba(143, 189, 196, 0.9);
     --select-bg: rgba(143, 189, 196, 0.32);
     --select-fg: var(--bg);
     --scroll-track: var(--bg);
-    --scroll-thumb: #1a262c;
-    --scroll-thumb-hover: #26363e;
+    --scroll-thumb: #2a2934;
+    --scroll-thumb-hover: #383745;
   }
 
   html {
@@ -159,7 +158,6 @@
     color: var(--select-fg);
   }
 
-  /* Dark scrollbar */
   ::-webkit-scrollbar {
     width: 11px;
   }
@@ -223,8 +221,8 @@
     background-color: var(--panel-glass-subtle);
   }
 
-  /* A Pill only ever LOOKS like glass — flat CSS, no WebGL. The site's one
-     real refraction is the navigation bar, and it lives in the Field. */
+  /* A Pill only ever LOOKS like glass — flat CSS, no WebGL. Nothing on the
+     site refracts: the Backdrop is a preset and cannot be sampled. */
   .lg-pill {
     border: 1px solid var(--edge-strong);
     backdrop-filter: blur(14px) saturate(150%);
@@ -237,7 +235,7 @@
   .lg-cta {
     background-color: var(--cta-bg);
     color: var(--cta-fg);
-    border: 1px solid var(--sig);
+    border: 1px solid var(--sig-deep);
     box-shadow: 0 8px 26px var(--cta-shadow);
   }
   .lg-cta:hover {
@@ -245,8 +243,8 @@
     box-shadow: 0 14px 34px var(--cta-shadow-hover);
   }
 
-  /* Headline shimmer, ice-cyan through to the brightest step of the cold
-     scale — the Signal is not spent here. */
+  /* Headline shimmer, running along the cold scale — the Signal is not
+     spent here. */
   .text-gradient {
     background: linear-gradient(
       110deg,
@@ -261,6 +259,11 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+    /* The glyphs are transparent windows onto the gradient, so an inherited
+       text-shadow would show THROUGH them and wash the headline out. A
+       drop-shadow follows the glyph's alpha instead, and sits behind it. */
+    text-shadow: none;
+    filter: drop-shadow(0 1px 10px var(--halo));
     @apply animate-shimmer;
   }
 
@@ -268,6 +271,15 @@
     .text-gradient {
       animation: none;
     }
+  }
+
+  /* Put this on anything whose text sits on the Backdrop rather than on a
+     Panel. text-shadow inherits, so one class on a container covers
+     everything inside it. */
+  .on-field {
+    text-shadow:
+      0 0 14px var(--halo),
+      0 2px 30px var(--halo-soft);
   }
 
   /* -------------------------------------------------------------------
@@ -289,15 +301,6 @@
     .deck-pane {
       height: 100svh;
     }
-  }
-
-  /* Put this on anything whose text sits on the Field rather than on a Panel.
-     text-shadow inherits, so one class on a container covers everything
-     inside it. */
-  .on-field {
-    text-shadow:
-      0 0 14px var(--field-halo),
-      0 2px 34px var(--field-halo-soft);
   }
 
   /* Mono Section Label (// 0X — LABEL) with its leading rule */
