@@ -1,8 +1,11 @@
-// Every mapping from Visitor input to a motion parameter lives here: the
-// Field's uniforms, the Deck's per-Project progress, and the three Zoom
-// moments. Numbers in, numbers out — this module imports nothing from React,
-// the DOM or the rendering surface, which is what makes it the one seam the
-// redesign is tested at.
+// Every mapping from Visitor scroll to a motion parameter lives here: the
+// Deck's per-Project travel and the three Zoom moments. Numbers in, numbers
+// out — this module imports nothing from React, the DOM or the rendering
+// surface, which is what makes it the one seam the redesign is tested at.
+//
+// The Backdrop takes no Visitor input at all: it is a third-party preset that
+// animates on its own, so there is no pointer or scroll-velocity mapping here
+// any more.
 
 export const clamp = (value, lo, hi) =>
   Number.isFinite(value) ? Math.min(hi, Math.max(lo, value)) : lo
@@ -12,49 +15,6 @@ export const clamp01 = (value) => clamp(value, 0, 1)
 const easeOutCubic = (t) => 1 - (1 - t) ** 3
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 
-// ---------------------------------------------------------------------------
-// Visitor input → Field uniforms
-// ---------------------------------------------------------------------------
-
-// Cursor position as the Field wants it: the origin at the centre of the
-// viewport, ±1 at the edges, y pointing up. A pointer dragged outside the
-// window (or a viewport of zero size) can never push the Field past ±1.
-export function pointerToField(clientX, clientY, width, height) {
-  if (!(width > 0) || !(height > 0)) return { x: 0, y: 0 }
-  if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return { x: 0, y: 0 }
-  return {
-    x: clamp((clientX / width) * 2 - 1, -1, 1),
-    y: clamp(1 - (clientY / height) * 2, -1, 1),
-  }
-}
-
-// The scroll speed at which the Field's response is essentially saturated.
-export const VELOCITY_REFERENCE = 9000 // px/s
-
-// Signed, normalised scroll speed. tanh rather than a hard clamp so the
-// response softens as it approaches its limit instead of hitting a wall —
-// and so no flick, however violent, can drive the Field past ±1.
-export function scrollVelocity(deltaPx, deltaMs, reference = VELOCITY_REFERENCE) {
-  if (!Number.isFinite(deltaPx) || !Number.isFinite(deltaMs) || deltaMs <= 0) return 0
-  const pxPerSecond = deltaPx / (deltaMs / 1000)
-  return Math.tanh(pxPerSecond / reference)
-}
-
-// Frame-rate independent decay — what makes the Field settle once the Visitor
-// stops scrolling rather than stopping dead.
-export function settle(value, deltaMs, halfLifeMs = 140) {
-  if (!Number.isFinite(value) || !Number.isFinite(deltaMs) || deltaMs <= 0) return value || 0
-  const next = value * 0.5 ** (deltaMs / halfLifeMs)
-  return Math.abs(next) < 1e-4 ? 0 : next
-}
-
-// Frame-rate independent easing toward a target — what makes the Field follow
-// the cursor rather than snap to it.
-export function approach(current, target, deltaMs, halfLifeMs = 140) {
-  if (!Number.isFinite(deltaMs) || deltaMs <= 0) return current
-  return current + (target - current) * (1 - 0.5 ** (deltaMs / halfLifeMs))
-}
-
 // A blur amount as a filter value. 'none' rather than blur(0px), so whatever
 // is in focus does not pay for a filter pass it does not use. Takes a number
 // and returns a string; it touches no DOM.
@@ -63,13 +23,21 @@ export function blurFilter(px) {
 }
 
 // ---------------------------------------------------------------------------
-// The Deck
+// How the scroll-driven moments travel
 // ---------------------------------------------------------------------------
 
-// Of each Project's viewport of scroll, this much is the handover to the next
-// Project; the rest is the dwell where the Project is fully presented.
-const HANDOVER = 0.62
-const DWELL = 1 - HANDOVER
+// The Deck travels between whole Projects: slow enough to read as one
+// deliberate movement, damped enough to arrive without wobbling.
+export const DECK_SPRING = { stiffness: 90, damping: 20, mass: 0.7, restDelta: 0.001 }
+
+// The other two Zoom moments glide toward where the scroll says they should
+// be rather than tracking it exactly, so they settle after the Visitor stops
+// instead of stopping dead wherever the wheel left them.
+export const ZOOM_SPRING = { stiffness: 110, damping: 26, mass: 0.5, restDelta: 0.0005 }
+
+// ---------------------------------------------------------------------------
+// The Deck
+// ---------------------------------------------------------------------------
 
 // How tall the Projects Section is, in viewport heights: one per Project for
 // the scrolling, plus one for the sticky pane itself. No Project count is
@@ -78,40 +46,40 @@ export function deckSectionViewports(count) {
   return Math.max(count, 1) + 1
 }
 
-// Where the Deck stands, measured in Projects. Starts slightly negative so the
-// first Project gets its own dwell before anything begins covering it.
-function deckPosition(sectionProgress, count) {
-  return clamp01(sectionProgress) * Math.max(count, 1) - DWELL
-}
-
-// The frontmost Project — what the Deck counter reports.
-export function deckFrontIndex(sectionProgress, count) {
+// Which Project the Deck rests on. Scroll chooses a whole Project and never a
+// position between two, so a Project can no longer be left stranded half-risen
+// when the Visitor stops scrolling — the spring driving `deckCardState` below
+// carries it the rest of the way in one movement.
+export function deckTargetIndex(sectionProgress, count) {
   const n = Math.max(count, 1)
-  return clamp(Math.round(deckPosition(sectionProgress, count)) || 0, 0, n - 1)
+  return clamp(Math.round(clamp01(sectionProgress) * (n - 1)), 0, n - 1)
 }
 
-// One Project's state at a given scroll offset.
-//   enter   0 → 1  rising from below into place
-//   recede  0 → 1  being covered by the next Project
-// The last Project never recedes: nothing is coming to cover it.
-export function projectState(sectionProgress, index, count) {
-  const u = deckPosition(sectionProgress, count) - index
-  const enter = clamp01((u + 1) / HANDOVER)
-  const recede = index >= count - 1 ? 0 : clamp01(u / HANDOVER)
+// Where one Project sits, given how far it is from the Project the Deck is
+// resting on. `offset` is that distance, and it arrives here mid-flight from a
+// spring, so every value in between has to look deliberate:
+//
+//   offset < 0   still to come — waiting below the fold
+//   offset = 0   the current Project, presented alone
+//   offset > 0   already passed — receding behind the ones after it
+export function deckCardState(offset) {
+  const o = Number.isFinite(offset) ? offset : 0
 
-  const rising = easeOutCubic(enter)
-  const covered = easeInOutCubic(recede)
+  const waiting = clamp01(-o)
+  const covered = easeInOutCubic(clamp01(o))
 
   return {
-    enter,
-    recede,
-    // Fully arrived and not yet covered — the state every Project must reach.
-    presented: enter >= 1 && recede <= 0,
+    // Fully arrived, and near enough to rest. The tolerance is what lets a
+    // settling spring count as "arrived" rather than flickering on the exact
+    // integer.
+    presented: Math.abs(o) < 0.15,
     // Percent of the sticky pane: up from below, then a small lift as it goes.
-    y: (1 - rising) * 100 - covered * 5,
+    y: waiting * 100 - covered * 5,
     // The Deck's recede — one of the site's three Zoom moments.
     scale: 1 - covered * 0.14,
-    opacity: clamp01(enter * 1.6) * (1 - covered * 0.55),
+    // Visible from one Project below (so the Visitor watches it rise) until
+    // one Project behind (so they watch it go), and nothing beyond that.
+    opacity: clamp01(o + 2) * (1 - clamp01(o - 1)),
     blur: covered * 7,
   }
 }

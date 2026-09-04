@@ -1,10 +1,10 @@
 import { useRef } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { useLang } from '../i18n'
 import Reveal from './Reveal'
 import ImageSlot from './ImageSlot'
 import { BriefcaseIcon, CapIcon, ZapIcon } from './icons'
-import { aboutArrival, blurFilter, imageResolve } from '../motion/params'
+import { ZOOM_SPRING, aboutArrival, blurFilter, imageResolve } from '../motion/params'
 
 const TAG_ICONS = { briefcase: BriefcaseIcon, cap: CapIcon, zap: ZapIcon }
 
@@ -14,10 +14,11 @@ function Portrait({ src, alt, placeholder }) {
   const ref = useRef(null)
   const reduce = useReducedMotion()
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'center center'] })
+  const progress = useSpring(scrollYProgress, ZOOM_SPRING)
 
-  const scale = useTransform(scrollYProgress, (p) => imageResolve(p).scale)
-  const opacity = useTransform(scrollYProgress, (p) => imageResolve(p).opacity)
-  const filter = useTransform(scrollYProgress, (p) => blurFilter(imageResolve(p).blur))
+  const scale = useTransform(progress, (p) => imageResolve(p).scale)
+  const opacity = useTransform(progress, (p) => imageResolve(p).opacity)
+  const filter = useTransform(progress, (p) => blurFilter(imageResolve(p).blur))
 
   return (
     <motion.div
@@ -51,9 +52,10 @@ export default function About() {
   // Zoom moment 2 of 3: About arrives from behind the departing Hero, so the
   // Visitor's first scroll reads as travelling forward rather than panning.
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'start center'] })
-  const scale = useTransform(scrollYProgress, (p) => aboutArrival(p).scale)
-  const opacity = useTransform(scrollYProgress, (p) => aboutArrival(p).opacity)
-  const y = useTransform(scrollYProgress, (p) => aboutArrival(p).y)
+  const progress = useSpring(scrollYProgress, ZOOM_SPRING)
+  const scale = useTransform(progress, (p) => aboutArrival(p).scale)
+  const opacity = useTransform(progress, (p) => aboutArrival(p).opacity)
+  const y = useTransform(progress, (p) => aboutArrival(p).y)
 
   return (
     <section id="about" ref={ref} className="relative z-[1] px-6 py-24 sm:px-10">

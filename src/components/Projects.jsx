@@ -1,8 +1,21 @@
 import { useRef, useState } from 'react'
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import {
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'framer-motion'
 import { useLang } from '../i18n'
 import ImageSlot from './ImageSlot'
-import { blurFilter, deckFrontIndex, deckSectionViewports, projectState } from '../motion/params'
+import {
+  DECK_SPRING,
+  blurFilter,
+  deckCardState,
+  deckSectionViewports,
+  deckTargetIndex,
+} from '../motion/params'
 
 // Renders the description, pulling the Highlight out with the Signal — the
 // only place on the site the Signal appears that is not a call to action.
@@ -87,28 +100,30 @@ function ProjectPanel({ project, index, alt, reachable = true }) {
   )
 }
 
-// One Project inside the Deck: it rises into place, rests, and then recedes as
-// the next rises over it. Every number here comes from the motion module.
-function DeckCard({ project, index, count, progress, alt }) {
+// One Project inside the Deck. Its position comes from how far it is from the
+// Project the Deck currently rests on — a spring-driven value — rather than
+// from the scroll offset directly. That is what stops a Project being left
+// stranded half-risen when the Visitor stops mid-scroll: the Deck is always
+// travelling to a whole Project, and always arrives.
+function DeckCard({ project, index, current, alt }) {
   const [reachable, setReachable] = useState(index === 0)
 
-  const y = useTransform(progress, (p) => `${projectState(p, index, count).y}%`)
-  const scale = useTransform(progress, (p) => projectState(p, index, count).scale)
-  const opacity = useTransform(progress, (p) => projectState(p, index, count).opacity)
+  const offset = useTransform(current, (c) => c - index)
+  const y = useTransform(offset, (o) => `${deckCardState(o).y}%`)
+  const scale = useTransform(offset, (o) => deckCardState(o).scale)
+  const opacity = useTransform(offset, (o) => deckCardState(o).opacity)
+  const filter = useTransform(offset, (o) => blurFilter(deckCardState(o).blur))
   // A Project the Visitor cannot see should cost the browser nothing to keep
   // around — an invisible Panel is still composited otherwise.
-  const visibility = useTransform(progress, (p) =>
-    projectState(p, index, count).opacity < 0.01 ? 'hidden' : 'visible',
+  const visibility = useTransform(offset, (o) =>
+    deckCardState(o).opacity < 0.01 ? 'hidden' : 'visible',
   )
-  const filter = useTransform(progress, (p) => blurFilter(projectState(p, index, count).blur))
 
-  // A Project that is still below the fold, or already covered by the next
-  // one, must not hold keyboard focus — the Visitor would be looking at
-  // something else entirely.
-  useMotionValueEvent(progress, 'change', (p) => {
-    const { enter, recede } = projectState(p, index, count)
-    const next = enter > 0.9 && recede < 0.15
-    setReachable((current) => (current === next ? current : next))
+  // A Project still below the fold, or already covered by the next one, must
+  // not hold keyboard focus — the Visitor would be looking at something else.
+  useMotionValueEvent(offset, 'change', (o) => {
+    const next = deckCardState(o).presented
+    setReachable((currentlyReachable) => (currentlyReachable === next ? currentlyReachable : next))
   })
 
   return (
@@ -137,9 +152,15 @@ function Deck({ label, heading, items, altFor }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const [front, setFront] = useState(0)
 
-  useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    const next = deckFrontIndex(p, count)
-    setFront((current) => (current === next ? current : next))
+  // Scroll picks a whole Project; the spring carries the cards to it. The two
+  // steps are what make the Deck settle instead of tracking the wheel.
+  const target = useTransform(scrollYProgress, (p) => deckTargetIndex(p, count))
+  const current = useSpring(target, DECK_SPRING)
+
+  // The counter follows the target, not the spring, so it flips once and
+  // decisively rather than hesitating mid-flight.
+  useMotionValueEvent(target, 'change', (next) => {
+    setFront((shown) => (shown === next ? shown : next))
   })
 
   return (
@@ -190,8 +211,7 @@ function Deck({ label, heading, items, altFor }) {
                 key={project.title}
                 project={project}
                 index={index}
-                count={count}
-                progress={scrollYProgress}
+                current={current}
                 alt={altFor(project)}
               />
             ))}

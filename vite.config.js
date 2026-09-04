@@ -2,8 +2,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Everything the site loads comes from its own origin — fonts, images and the
-// Field's shader alike — so the policy permits no external origin at all.
+// Everything the site loads comes from its own origin, so the policy permits
+// no external origin at all. The Backdrop preset carries envPreset="city",
+// but it also sets lightType="3d" — mesh lighting, not environment lighting —
+// so the library never fetches the HDR maps that the "env" light type would.
+// Verified: no request leaves the origin at runtime. If the Backdrop ever
+// switches back to lightType="env", connect-src needs
+// https://ruucm.github.io added back or the lighting will silently fail.
 // 'unsafe-inline' for styles is required by the React style props used across
 // the site; blob: and data: images cover inline SVG icons and object URLs.
 const csp = [

@@ -71,20 +71,23 @@ component styles.
 _Avoid_: variable, theme value, palette entry
 
 **Backdrop**:
-The full-screen animated layer sitting behind every Section. It responds to
-continuous Visitor input — where the cursor is, how fast the page is
-scrolling — but it still carries no meaning: no Visitor could read any state
-off it, and it never indicates which Section is active. It is decorative, and
-the site must stay fully readable when it fails to render or the Visitor
-prefers reduced motion.
+The full-screen animated layer sitting behind every Section. It takes no
+Visitor input at all: it animates on its own, and it carries no meaning — no
+Visitor could read any state off it, and it never indicates which Section is
+active. It is decorative, and the site must stay fully readable when it fails
+to render or the Visitor prefers reduced motion.
 _Avoid_: background (ambiguous with a Panel's own background), hero background
 
 **Field**:
-What the Backdrop depicts: a slow, drifting expanse with sparse points
-suspended at different depths above it. The Field is the only place on the
-site where colour is allowed to be lavish, which is what lets the content
-layer stay austere.
-_Avoid_: gradient, particles, shader
+What the Backdrop depicts: a slowly moving, softly lit form whose colour
+drifts across the whole viewport. The Field is the only place on the site
+where colour is allowed to be lavish, which is what lets the content layer
+stay austere — and it is the only place the retired accents may reappear,
+because its colours are not Tokens. It runs at full strength and is never
+dimmed to make the content readable; text that sits on it carries its own
+halo instead. The Field comes from a third-party preset, so it is configured,
+not written: its colours are props.
+_Avoid_: particles, shader
 
 **Panel**:
 A content container within a Section. Each Panel picks one transparency
@@ -97,18 +100,14 @@ The frame around a Panel — border and depth only. Glass never decides how
 transparent a Panel is; the Panel does.
 _Avoid_: blur, frost
 
-**Liquid glass**:
-The real refractive effect, used on the navigation bar and nowhere else. It is
-not a layer of its own: it is the Field seen through a distorting region where
-the nav sits, which is why it refracts what is genuinely behind it at that
-instant. The site has exactly one WebGL surface, so "add liquid glass to X" is
-a proposal to widen that surface and should be challenged.
-_Avoid_: glass effect, shader glass
-
 **Pill**:
-A button or nav item that imitates Liquid glass in flat CSS. A Pill only ever
-looks like glass — treating one as real Liquid glass is a category error.
-_Avoid_: chip, glass button
+A button or nav item that imitates glass in flat CSS — blur, a border, a
+sheen. The navigation bar is a Pill, and so is every button on the site.
+Nothing on the site refracts: the Backdrop is a third-party surface that
+cannot be sampled, so "make the nav refract what is behind it" is a proposal
+to replace the Backdrop, not a styling change. See
+[ADR 0003](./docs/adr/0003-shadergradient-backdrop.md).
+_Avoid_: chip, glass button, liquid glass
 
 **Image slot**:
 A fixed-size picture frame that shows a shipped image, or a designed cover tile
@@ -119,14 +118,21 @@ _Avoid_: image placeholder, thumbnail
 **Deck**:
 How the Projects Section presents its Projects: each one rests at the top of
 the viewport while the next rises over it, the covered Project receding behind.
-Every Project is reached by scrolling down, so the Deck adds no second way to
-navigate and hides nothing from a Visitor who only skims.
+The Deck always rests ON a Project and never between two — scrolling chooses
+which one, and the movement there is a single, complete travel rather than
+something dragged along by the wheel. Every Project is reached by scrolling
+down, so the Deck adds no second way to navigate and hides nothing from a
+Visitor who only skims.
 _Avoid_: carousel, slider, stack
 
 **Signal**:
-The one warm accent, reserved for the few things the site actually wants
-pressed or read. Its scarcity is the whole point: a second Signal, or a
-decorative use of the first, spends it.
+The one acid accent, reserved for the few things the site actually wants
+pressed or read: the Hero calls to action, the active nav item, and a
+Project's Highlight. One hue at one value, used both as text and as a filled
+surface. Its scarcity is the whole point — a second Signal, or a decorative
+use of the first, spends it. Focus rings, the selection colour, the scroll
+indicator and the typewriter caret are all states or decoration, so none of
+them is ever the Signal.
 _Avoid_: accent, highlight (a Highlight is something else — see above), CTA
 colour
 

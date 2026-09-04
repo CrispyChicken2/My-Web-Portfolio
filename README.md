@@ -1,17 +1,17 @@
 # oscar-hunaut.dev — Portfolio
 
 A personal, **bilingual (EN/FR)** portfolio. The content layer is austere — a
-desaturated ice-cyan cold scale carries every surface and every string, and a
-single acid-lime **Signal** marks the few things meant to be pressed or read.
-All the colour and all the motion sit behind the content, in the **Field**: a
-hand-written WebGL2 Backdrop that also renders the navigation bar's refraction.
+cold ice-cyan scale carries every surface and every string as pale text on
+deep surfaces, and a single acid-lime **Signal** marks the few things meant to
+be pressed or read. All the colour and all the motion sit behind the content,
+in the **Backdrop**: an animated ShaderGradient running at full strength
+behind every Section.
 
 For the vocabulary used throughout (Field, Deck, Signal, Tone, Panel, Zoom
 moment…), see [CONTEXT.md](./CONTEXT.md).
 
-**Stack:** React 18 · Vite · Tailwind CSS · Framer Motion · Vitest.
-No rendering library — the Field is ~500 lines of GLSL and WebGL2 in
-`src/field/`. Three runtime dependencies in total.
+**Stack:** React 18 · Vite · Tailwind CSS · Framer Motion · Vitest ·
+`@shadergradient/react` (react-three-fiber).
 
 ---
 
@@ -53,17 +53,29 @@ an `image` path, and a `highlight` phrase that must appear verbatim inside its
 
 Every colour on the site resolves from the **Token block** at the top of
 **`src/index.css`** — the cold scale (`--fg1…8`, `--ice`), the Signal
-(`--sig`), surfaces, Tones, and the Field's own colours (`--field-*`, read by
-the Field through `src/field/palette.js`). No component carries a colour of
-its own, so retheming is one edit to that block. `tailwind.config.js` only
-references the Tokens.
+(`--sig`), surfaces and Tones. No component carries a colour of its own, so
+retheming is one edit to that block. `tailwind.config.js` only references the
+Tokens.
+
+The **Backdrop is the exception**: it is a third-party preset and takes its
+three colours as props, in `src/components/ShaderBackdrop.jsx`. Change them
+there, and keep `--flat-1` / `--flat-2` in step so the flat fallback still
+matches what it stands in for.
 
 Two rules the palette depends on:
 
 - The **Signal** appears on the Hero calls to action, the active nav item, and
-  a Project's Highlight. Nowhere else, and never decoratively.
+  a Project's Highlight. Nowhere else, and never decoratively — not on focus
+  rings, the selection colour, the scroll indicator or a caret. One hue, one
+  value, used as text and as a filled surface alike.
 - A **Tone** is a step on the cold scale. Tones differ by depth and intensity,
   never by hue, and a Tone is never the Signal.
+
+The site is **dark only** and does not answer `prefers-color-scheme`. The
+content layer was inverted to light and back again as the Backdrop changed —
+[ADR 0002](./docs/adr/0002-light-content-layer.md) and
+[ADR 0004](./docs/adr/0004-dark-content-layer.md) record both moves and what
+each measured.
 
 ### Images
 
@@ -92,35 +104,33 @@ the Section.
 
 ---
 
-## The Field
+## The Backdrop
 
-`src/field/` is the site's **one and only WebGL surface**, loaded as a separate
-chunk so first paint is never blocked on it. It renders in three passes:
+`src/components/ShaderBackdrop.jsx` holds the Backdrop: a `<ShaderGradient>`
+preset exported from [shadergradient.co](https://shadergradient.co), applied
+verbatim. Editing the Backdrop means editing those props. It loads as a
+separate chunk so first paint is never blocked on it.
 
-1. **the expanse** — a domain-warped noise field, into a framebuffer at a
-   fraction of screen resolution (it has no detail worth resolving);
-2. **the point layer** — sparse points at four depths, parallaxing above it;
-3. **the composite** — draws that to the screen, and refracts it where the
-   navigation bar sits.
+It takes no Visitor input — it animates on its own, and it is given no Section
+identity by design: it must stay unable to encode state.
 
-Pass 3 is what liquid glass now is: the bar has no layer of its own, so it
-refracts the live Field rather than a snapshot of the page. See
-[ADR 0001](./docs/adr/0001-hand-written-webgl-field.md) for why the previous
-library-based approach was removed.
+The Backdrop needs **no scrim**: it is drawn at full strength, and text that
+sits directly on it carries a dark halo (`.on-field`) rather than the Backdrop
+being dimmed to accommodate it. Dimming it is what made an earlier attempt
+read as a black page.
 
-The Field takes only continuous Visitor input — normalised cursor position and
-scroll speed. It is given no Section identity by design: it must stay unable
-to encode state.
+Nothing on the site refracts. A third-party canvas is not ours to sample, so
+the navigation bar is a **Pill** — flat CSS glass. See
+[ADR 0003](./docs/adr/0003-shadergradient-backdrop.md) for what that traded
+away, and [ADR 0001](./docs/adr/0001-hand-written-webgl-field.md) for the
+hand-written surface it replaced.
 
 **Degradation.** Every motion effect is decorative:
 
-- `prefers-reduced-motion` → the Field is still, the Deck is a plain vertical
-  stack, and the Zoom moments are absent. All content is present.
-- WebGL unavailable or the context lost → `FlatBackdrop`, a designed flat
-  Backdrop in the same scale, and the nav falls back to its flat Pill.
-- Phones → the Field runs at reduced resolution with no point layer and no
-  pointer work (`src/field/tier.js`). The Deck and all three Zoom moments stay.
-
+- `prefers-reduced-motion` → the Backdrop is still, the Deck is a plain
+  vertical stack, and the Zoom moments are absent. All content is present.
+- WebGL unavailable → `FlatBackdrop`, a designed flat Backdrop in the same
+  colours.
 ---
 
 ## Motion
@@ -135,6 +145,12 @@ The three **Zoom moments** are counted and chosen, not a rule: the Hero → Abou
 dolly, the Deck's recede, and the About Image slot's entry. A fourth is a
 design decision, not an implementation detail.
 
+All three are **spring-driven** rather than tied rigidly to the scroll offset,
+so they glide and settle instead of stopping wherever the wheel left them. The
+Deck goes further: scroll picks a whole Project (`deckTargetIndex`) and a
+spring carries the cards there (`deckCardState`), so a Project can never be
+left stranded half-risen when the Visitor stops mid-scroll.
+
 ---
 
 ## Tests
@@ -142,11 +158,11 @@ design decision, not an implementation detail.
 `npm test` runs Vitest, which reuses `vite.config.js`, so there is no second
 build pipeline and no production dependency.
 
-- **`src/motion/params.test.js`** — Deck progress is monotonic and clamped,
-  every Project reaches a fully presented state at counts of three and above,
-  pointer input maps into its normalised range at and beyond the viewport
-  edges, and scroll velocity stays bounded so a fast flick cannot drive the
-  Field past its limits.
+- **`src/motion/params.test.js`** — the Deck always names a whole Project and
+  reaches every one of them in order at counts of three and above, clamped
+  outside the Section; a card's derived transform stays finite and moves
+  smoothly through the fractional offsets a spring passes through; and all
+  three Zoom moments clamp outside their range.
 - **`src/data/content.test.js`** — the two Dictionaries have the same key
   structure.
 
@@ -171,8 +187,10 @@ Static site (Vite → `dist/`), no backend, no runtime secrets.
 - `vercel.json` adds security headers (HSTS, `X-Frame-Options`, `nosniff`,
   `Permissions-Policy`) and a 1-year immutable cache on `/assets/`.
 - `vite.config.js` injects a strict **Content-Security-Policy** at build time.
-  It permits **no external origin**: everything the site loads — fonts,
-  images and the Field alike — comes from its own origin.
+  It permits **no external origin**. The Backdrop preset names an `envPreset`
+  but uses `lightType="3d"`, so the library never fetches the HDR environment
+  maps that `lightType="env"` would — switching to `"env"` means adding
+  `https://ruucm.github.io` back to `connect-src`.
 - **`.npmrc`** (`legacy-peer-deps=true`) is required — `npm ci` fails without it.
 
 ---
@@ -198,17 +216,11 @@ Static site (Vite → `dist/`), no backend, no runtime secrets.
     ├── index.css                 # ← the Token block, Panels, Glass, the Deck
     ├── fonts.css                 # self-hosted @font-face
     ├── data/content.js           # ← ALL content (en + fr)
-    ├── motion/params.js          # ← ALL input → motion parameter mapping
-    ├── field/                    # the site's one WebGL surface
-    │   ├── renderer.js           # context, passes, framebuffer
-    │   ├── shaders.js            # expanse · points · composite (+ refraction)
-    │   ├── palette.js            # the Field's colours, read from Tokens
-    │   ├── tier.js               # desktop / phone tier
-    │   └── FieldContext.jsx      # nav rectangle + "is the Field live"
+    ├── motion/params.js          # ← ALL scroll → motion parameter mapping
     └── components/
         ├── Nav.jsx               # pill nav, scroll-spy, language toggle
         ├── Hero · About · Skills · Projects · Experience · Contact
-        ├── Field.jsx             # mounts the surface (lazy chunk)
+        ├── ShaderBackdrop.jsx    # the ShaderGradient preset (lazy chunk)
         ├── FlatBackdrop.jsx      # the designed fallback Backdrop
         ├── ImageSlot.jsx · Reveal.jsx · icons.jsx
 ```

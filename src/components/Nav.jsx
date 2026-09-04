@@ -1,12 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useLang } from '../i18n'
-import { useField } from '../field/FieldContext'
 
 export default function Nav() {
   const { lang, setLang, t } = useLang()
-  const { live, bus } = useField()
-  const barRef = useRef(null)
   const [active, setActive] = useState('about')
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -20,55 +17,6 @@ export default function Nav() {
     .join('')
     .slice(0, 2)
     .toUpperCase()
-
-  // The bar's rectangle is the only thing the Field needs in order to refract
-  // exactly the region the bar covers. It is published on a mutable bus rather
-  // than in state — the renderer reads it every frame and must never make the
-  // nav re-render. Because the composite samples the live Field, a language switch
-  // needs nothing here: there is no snapshot to go stale.
-  useLayoutEffect(() => {
-    const bar = barRef.current
-    if (!bar) return undefined
-
-    let raf = 0
-    const publish = () => {
-      const rect = bar.getBoundingClientRect()
-      bus.navRect = {
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-        radius: rect.height / 2,
-      }
-      bus.requestRender()
-    }
-
-    // Follow the bar for a moment whenever it changes size or shape, so the
-    // refracted region tracks the shrink transition instead of jumping.
-    const follow = (until) => {
-      cancelAnimationFrame(raf)
-      const step = () => {
-        publish()
-        if (performance.now() < until) raf = requestAnimationFrame(step)
-      }
-      step()
-    }
-
-    publish()
-    const observer = new ResizeObserver(() => follow(performance.now() + 420))
-    observer.observe(bar)
-    window.addEventListener('resize', publish)
-
-    return () => {
-      cancelAnimationFrame(raf)
-      observer.disconnect()
-      window.removeEventListener('resize', publish)
-      bus.navRect = null
-    }
-    // No need to re-run this for `scrolled`, `open` or `lang`: the bar's box
-    // is set by the viewport, not by its content, and the ResizeObserver
-    // catches the cases where that is not true.
-  }, [bus])
 
   useEffect(() => {
     const ids = ['about', 'skills', 'projects', 'experience']
@@ -109,22 +57,15 @@ export default function Nav() {
     }
   }, [open])
 
-  // Over the live Field the bar is nearly bodiless — what fills it is the
-  // Field refracted through it. Without the Field it keeps its flat Pill
-  // background and stays exactly as usable.
-  const background = live
-    ? 'var(--nav-bg-live)'
-    : scrolled
-      ? 'var(--nav-bg-scrolled)'
-      : 'var(--nav-bg)'
+  // A Pill: it imitates glass in flat CSS. The Backdrop is a third-party
+  // surface now, so nothing on the site can sample it and there is no real
+  // refraction to have here.
+  const background = scrolled ? 'var(--nav-bg-scrolled)' : 'var(--nav-bg)'
 
   return (
     <nav
-      ref={barRef}
       aria-label={t.nav.primary}
-      className={`fixed left-1/2 top-3 z-50 flex w-[calc(100%-20px)] max-w-[1120px] -translate-x-1/2 items-center justify-between rounded-full py-2 pl-4 pr-2.5 transition-colors duration-300 sm:pl-5 ${
-        live ? '' : 'backdrop-blur-xl backdrop-saturate-150'
-      }`}
+      className="fixed left-1/2 top-3 z-50 flex w-[calc(100%-20px)] max-w-[1120px] -translate-x-1/2 items-center justify-between rounded-full py-2 pl-4 pr-2.5 backdrop-blur-xl backdrop-saturate-150 transition-colors duration-300 sm:pl-5"
       style={{
         background,
         border: '1px solid var(--edge)',
