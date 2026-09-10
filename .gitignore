@@ -34,7 +34,13 @@ pnpm-debug.log*
 
 # Anciennes itérations conservées en local uniquement
 _archive/
-.claude/
+
+# Réglages d'agent : la config partagée est versionnée, le local ne l'est pas
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+!.claude/skills/
+.claude/settings.local.json
 
 # Notes de session conservées en local uniquement
 docs/grilling-frontend-redesign.md

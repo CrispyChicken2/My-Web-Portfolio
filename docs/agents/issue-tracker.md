@@ -7,7 +7,7 @@ Use the `gh` CLI for all operations.
 `gh` infers the repo from `git remote -v` when run inside this clone, so no
 `--repo` flag is needed. If `gh` is not on `PATH` or not authenticated, stop and
 say so rather than falling back to writing issue files by hand — this repo
-tracks work on GitHub, and `.scratch/` holds drafts only.
+tracks work on GitHub.
 
 ## Conventions
 
@@ -17,16 +17,6 @@ tracks work on GitHub, and `.scratch/` holds drafts only.
 - **Comment on an issue**: `gh issue comment <number> --body "..."`
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
-
-## Drafts under `.scratch/`
-
-`.scratch/<feature>/issues/*.md` holds ticket drafts written before publication —
-for example the ten tickets under `.scratch/dynamic-frontend-redesign/issues/`,
-which come from the approved spec in [SPECS.md](../../SPECS.md) and are published
-as GitHub issues carrying the `ready-for-agent` label.
-
-These files are a staging area, not the tracker. Once a draft is published, the
-GitHub issue is the source of truth; read the issue, not the file.
 
 ## Pull requests as a triage surface
 
@@ -58,3 +48,9 @@ Used by `/wayfinder`. The **map** is a single issue with **child** issues as tic
 - **Frontier query**: list the map's open children (`gh issue list --state open`, scoped to the map's sub-issues / task list), drop any with an open blocker (`issue_dependencies_summary.blocked_by > 0`, or an open issue in the `Blocked by` line) or an assignee; first in map order wins.
 - **Claim**: `gh issue edit <n> --add-assignee @me`, the session's first write.
 - **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer (gist + link) to the map's Decisions-so-far.
+
+## Publishing a spec and its tickets
+
+One authoritative copy, in the `publishing-specs-and-tickets` skill
+(`.claude/skills/publishing-specs-and-tickets/SKILL.md`): how to match the
+existing batch, and how to tell a published batch is complete.
