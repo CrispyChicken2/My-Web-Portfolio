@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  animate,
   motion,
   useMotionValueEvent,
   useReducedMotion,
@@ -13,9 +14,33 @@ import {
   DECK_SPRING,
   blurFilter,
   deckCardState,
+  deckFrontIndex,
+  deckProgressForIndex,
   deckSectionViewports,
   deckTargetIndex,
 } from '../motion/params'
+
+// The Deck is a desktop presentation. Below this width the Projects Section is
+// the plain stack instead: every Project present at its own height, no gesture
+// to learn, and no desktop-sized Panel to clip a description or an Image slot.
+// The same width the Panel's own layout switches at, so the two never disagree.
+const DECK_MIN_WIDTH = '(min-width: 1024px)'
+
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() =>
+    typeof window === 'undefined' ? false : window.matchMedia(query).matches,
+  )
+
+  useEffect(() => {
+    const list = window.matchMedia(query)
+    const sync = () => setMatches(list.matches)
+    sync()
+    list.addEventListener('change', sync)
+    return () => list.removeEventListener('change', sync)
+  }, [query])
+
+  return matches
+}
 
 // Renders the description, pulling the Highlight out with the Signal — the
 // only place on the site the Signal appears that is not a call to action.
@@ -100,14 +125,55 @@ function ProjectPanel({ project, index, alt, reachable = true }) {
   )
 }
 
-// One Project inside the Deck. Its position comes from how far it is from the
-// Project the Deck currently rests on — a spring-driven value — rather than
-// from the scroll offset directly. That is what stops a Project being left
-// stranded half-risen when the Visitor stops mid-scroll: the Deck is always
-// travelling to a whole Project, and always arrives.
-function DeckCard({ project, index, current, alt }) {
-  const [reachable, setReachable] = useState(index === 0)
+// The Rail. One dot per Project, reading as position and never as progress —
+// one dot active and the others alike, so it says "there is one before this
+// and one after" rather than how far through a track the Visitor is. Filling
+// in behind them would imply a ranking the site does not claim.
+//
+// Every dot is a real button naming the Project it leads to, not its number,
+// so the labels stay correct when a fourth Project is added and so the Rail is
+// not a control only some Visitors have. Its colours come from the same
+// Tokens as the Experience timeline's dots: the Rail stands beside a Project's
+// Highlight, and a viewport holding two acid things holds no Signal at all.
+function Rail({ items, front, strings, onSelect }) {
+  return (
+    <nav className="deck-rail" aria-label={strings.label}>
+      <ul className="m-0 flex list-none flex-col items-center gap-1 p-0">
+        {items.map((project, index) => {
+          const active = index === front
+          return (
+            <li key={project.title} className="flex">
+              <button
+                type="button"
+                className="deck-rail-dot"
+                data-active={active ? '' : undefined}
+                aria-current={active ? 'true' : undefined}
+                aria-label={strings.item
+                  .replace('{n}', String(index + 1))
+                  .replace('{total}', String(items.length))
+                  .replace('{title}', project.title)}
+                onClick={() => onSelect(index)}
+              />
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
+}
 
+// One Project inside the Deck. Its position comes from how far it is from the
+// Project the Deck is travelling toward — a spring-driven value — rather than
+// from the scroll offset directly, which is what keeps the movement a settling
+// one rather than something dragged along by the wheel.
+//
+// Whether it can be reached is a different question, and it is decided by the
+// Deck rather than here. It has to be the Project the Deck *names* — the one
+// the counter and the Rail agree on — and never "is this card at rest", which
+// is false for everyone whenever the Visitor stops mid-handover: the Deck
+// travels continuously now, so that is a position it can simply come to rest
+// in, and it would leave a fully visible Project with an unclickable link.
+function DeckCard({ project, index, current, alt, reachable }) {
   const offset = useTransform(current, (c) => c - index)
   // The seam hands back two travels in two units, and this is where they are
   // composed: the entry in viewport heights — spent in --deck-vh, the same
@@ -130,13 +196,6 @@ function DeckCard({ project, index, current, alt }) {
     deckCardState(o).opacity < 0.01 ? 'hidden' : 'visible',
   )
 
-  // A Project still below the fold, or already covered by the next one, must
-  // not hold keyboard focus — the Visitor would be looking at something else.
-  useMotionValueEvent(offset, 'change', (o) => {
-    const next = deckCardState(o).presented
-    setReachable((currentlyReachable) => (currentlyReachable === next ? currentlyReachable : next))
-  })
-
   return (
     <motion.div
       className="absolute inset-0"
@@ -155,24 +214,87 @@ function DeckCard({ project, index, current, alt }) {
   )
 }
 
-// The Deck. Its Section is as tall as it needs to be for one viewport of
-// scroll per Project, so adding a Project is a content edit and nothing else.
-function Deck({ label, heading, items, altFor }) {
+// The Deck. Its Section is as tall as its scroll budget asks for — a hold at
+// each end and one handover between each pair of Projects — so adding a
+// Project costs one handover and is a content edit and nothing else.
+function Deck({ label, heading, items, altFor, rail }) {
   const ref = useRef(null)
+  const travel = useRef(null)
   const count = items.length
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const [front, setFront] = useState(0)
 
-  // Scroll picks a whole Project; the spring carries the cards to it. The two
-  // steps are what make the Deck settle instead of tracking the wheel.
+  // Scroll travels continuously between Projects, holding near each one; the
+  // spring carries the cards along it. The two steps are what make the Deck
+  // arrive instead of tracking the wheel — and the travel is what stops most
+  // of the Section's scroll from changing nothing at all.
   const target = useTransform(scrollYProgress, (p) => deckTargetIndex(p, count))
   const current = useSpring(target, DECK_SPRING)
 
-  // The counter follows the target, not the spring, so it flips once and
-  // decisively rather than hesitating mid-flight.
+  // The counter and the Rail follow the target, not the spring, so they flip
+  // once and decisively rather than hesitating mid-flight.
   useMotionValueEvent(target, 'change', (next) => {
-    setFront((shown) => (shown === next ? shown : next))
+    const index = deckFrontIndex(next, count)
+    setFront((shown) => (shown === index ? shown : index))
   })
+
+  // Pressing a dot has to move the document, not the spring. The Deck's
+  // position is derived from scroll, so driving the spring alone would leave
+  // the two disagreeing and the Visitor's next turn of the wheel would yank
+  // them back to where they were. The travel is animated here rather than
+  // handed to the browser's smooth scrolling, whose duration and easing differ
+  // between browsers — the same click would visibly behave differently in two
+  // of them. Passing through the Projects in between comes for free: the
+  // document is scrolled through them.
+  const goTo = useCallback(
+    (index) => {
+      const section = ref.current
+      // Only refuse to move if the Deck is genuinely resting on that Project.
+      // Comparing against the counter instead would refuse precisely when the
+      // Deck has come to rest mid-handover — the one time the Visitor most
+      // needs a dot to pull it onto a whole Project.
+      if (!section || Math.abs(target.get() - index) < 0.01) return
+      travel.current?.stop()
+
+      const span = section.offsetHeight - window.innerHeight
+      if (span <= 0) return
+      const top = section.getBoundingClientRect().top + window.scrollY
+      const to = top + deckProgressForIndex(index, count) * span
+
+      // `behavior: 'instant'` on every one of these, deliberately: the
+      // stylesheet sets `scroll-behavior: smooth` on the document, and a
+      // two-argument scrollTo inherits it — so each frame of the easing below
+      // would start a *new* browser smooth scroll toward a moving target,
+      // which is the mushy per-browser drift this function exists to avoid.
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        window.scrollTo({ top: to, behavior: 'instant' })
+        return
+      }
+
+      // Long jumps take longer, but not proportionally — crossing the whole
+      // Deck should still feel like one movement rather than a tour.
+      const screens = Math.min(Math.abs(to - window.scrollY) / window.innerHeight, 3)
+      travel.current = animate(window.scrollY, to, {
+        duration: 0.35 + screens * 0.32,
+        ease: [0.32, 0.72, 0, 1],
+        onUpdate: (value) => window.scrollTo({ top: value, behavior: 'instant' }),
+      })
+    },
+    [count, target],
+  )
+
+  // A Visitor who starts scrolling mid-travel means it: let them take over
+  // rather than fighting the animation for the rest of its duration.
+  useEffect(() => {
+    const cancel = () => travel.current?.stop()
+    window.addEventListener('wheel', cancel, { passive: true })
+    window.addEventListener('touchstart', cancel, { passive: true })
+    return () => {
+      window.removeEventListener('wheel', cancel)
+      window.removeEventListener('touchstart', cancel)
+      cancel()
+    }
+  }, [])
 
   return (
     <section
@@ -194,28 +316,14 @@ function Deck({ label, heading, items, altFor }) {
             </h2>
           </div>
 
-          {/* How many Projects there are, and where the Visitor is in the set. */}
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            <div className="font-mono text-[13px] text-dim">
-              <span style={{ color: 'var(--fg1)' }}>{String(front + 1).padStart(2, '0')}</span>
-              <span className="px-1 opacity-50">/</span>
-              {String(count).padStart(2, '0')}
-            </div>
-            {/* Ticks wrap and cap their width so a Deck of twelve Projects
-                sits in the header as comfortably as a Deck of three; on a
-                phone the counter alone carries it. */}
-            <div
-              className="hidden max-w-[240px] flex-wrap justify-end gap-1 sm:flex"
-              aria-hidden="true"
-            >
-              {items.map((item, i) => (
-                <span
-                  key={item.title}
-                  className="h-[3px] w-5 rounded-full transition-colors duration-300"
-                  style={{ background: i <= front ? 'var(--ice)' : 'var(--edge)' }}
-                />
-              ))}
-            </div>
+          {/* How many Projects there are. Which one the Visitor is on is the
+              Rail's job — the tick rail that used to sit here said the same
+              thing a third time, and said it in the opposite corner of the
+              screen from the Project being read. */}
+          <div className="shrink-0 font-mono text-[13px] text-dim">
+            <span style={{ color: 'var(--fg1)' }}>{String(front + 1).padStart(2, '0')}</span>
+            <span className="px-1 opacity-50">/</span>
+            {String(count).padStart(2, '0')}
           </div>
         </div>
 
@@ -228,8 +336,13 @@ function Deck({ label, heading, items, altFor }) {
                 index={index}
                 current={current}
                 alt={altFor(project)}
+                reachable={index === front}
               />
             ))}
+            {/* Inside the Panel box rather than the pane, so its two positions
+                — in the Panel's own padding, and out in the gutter beside it —
+                are one offset apart rather than two viewport calculations. */}
+            <Rail items={items} front={front} strings={rail} onSelect={goTo} />
           </div>
         </div>
       </div>
@@ -261,6 +374,7 @@ function PlainStack({ label, heading, items, altFor }) {
 export default function Projects() {
   const { t } = useLang()
   const reduce = useReducedMotion()
+  const wide = useMediaQuery(DECK_MIN_WIDTH)
   const altFor = (project) => t.projects.screenshotAlt.replace('{title}', project.title)
 
   const props = {
@@ -268,9 +382,13 @@ export default function Projects() {
     heading: t.projects.heading,
     items: t.projects.items,
     altFor,
+    rail: t.projects.rail,
   }
 
   // The Deck must not sit inside a transformed or filtered wrapper — that
   // would defeat the sticky pane the whole thing rests on.
-  return reduce ? <PlainStack {...props} /> : <Deck {...props} />
+  //
+  // It is also desktop-only now, and the plain stack carries both of the
+  // cases that are not it: a Visitor who prefers reduced motion, and a phone.
+  return reduce || !wide ? <PlainStack {...props} /> : <Deck {...props} />
 }

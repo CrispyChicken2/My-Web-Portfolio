@@ -39,20 +39,85 @@ export const ZOOM_SPRING = { stiffness: 110, damping: 26, mass: 0.5, restDelta: 
 // The Deck
 // ---------------------------------------------------------------------------
 
-// How tall the Projects Section is, in viewport heights: one per Project for
-// the scrolling, plus one for the sticky pane itself. No Project count is
-// special — this is what lets a Project be added by editing content alone.
-export function deckSectionViewports(count) {
-  return Math.max(count, 1) + 1
+// The Deck's scroll budget, in viewport heights. Counted in handovers, never
+// in Projects: three Projects are two handovers, not three viewports. The
+// holds at the ends are not slack — without the tail, the wheel turn that
+// lands the Visitor on the last Project is the same turn that starts moving
+// the page, and they never get to read it.
+//
+// All three are tuned by eye, and every consumer below reads them from here:
+// the Section's length, the scroll-to-Project mapping and the Rail's
+// jump targets have to agree, and the only way they can disagree is if one of
+// them keeps its own copy of these numbers.
+export const DECK_BUDGET = { head: 0.3, handover: 0.6, tail: 0.3 }
+
+// How much of a handover the Deck spends at rest on each side of it. This is
+// what makes the travel a staircase rather than a ramp: a Project is held
+// long enough to read as arrived, and the movement between two is spent in
+// the middle where it reads as one deliberate handover. Tuned by eye — raise
+// it and the Deck starts to feel like it is standing still again.
+const DECK_FLAT = 0.14
+
+// One handover, as a position between two Projects. Flat at both ends, eased
+// through the middle.
+function staircase(u) {
+  const t = clamp01(u)
+  if (t <= DECK_FLAT) return 0
+  if (t >= 1 - DECK_FLAT) return 1
+  return easeInOutCubic((t - DECK_FLAT) / (1 - 2 * DECK_FLAT))
 }
 
-// Which Project the Deck rests on. Scroll chooses a whole Project and never a
-// position between two, so a Project can no longer be left stranded half-risen
-// when the Visitor stops scrolling — the spring driving `deckCardState` below
-// carries it the rest of the way in one movement.
+// The scroll the Section spends on its Projects, in viewport heights — the
+// budget without the sticky pane.
+function deckScrollSpan(count) {
+  const { head, handover, tail } = DECK_BUDGET
+  return head + (Math.max(count, 1) - 1) * handover + tail
+}
+
+// How tall the Projects Section is, in viewport heights: the scroll budget
+// plus one for the sticky pane itself. No Project count is special — this is
+// what lets a Project be added by editing content alone, and it now costs one
+// handover rather than a whole viewport.
+export function deckSectionViewports(count) {
+  return deckScrollSpan(count) + 1
+}
+
+// Where the Deck is, as a continuous position between Projects. It used to
+// round to a whole Project, which meant most of the Section's scroll changed
+// nothing at all and the Deck then jumped; now it travels, flat near each
+// Project and steep between them, so every turn of the wheel moves something
+// and the Deck is always heading for a whole Project.
 export function deckTargetIndex(sectionProgress, count) {
   const n = Math.max(count, 1)
-  return clamp(Math.round(clamp01(sectionProgress) * (n - 1)), 0, n - 1)
+  if (n === 1) return 0
+
+  const { head, handover } = DECK_BUDGET
+  const distance = clamp01(sectionProgress) * deckScrollSpan(n)
+  // Which handover the Visitor is inside, and how far through it.
+  const position = clamp((distance - head) / handover, 0, n - 1)
+  const from = Math.min(Math.floor(position), n - 2)
+  return from + staircase(position - from)
+}
+
+// The one whole Project the header counter and the Rail display. It flips at
+// the midpoint of a handover — once, and decisively — rather than following
+// the travel: two indicators hesitating in different places is worse than
+// either of them hesitating alone.
+export function deckFrontIndex(target, count) {
+  return clamp(Math.round(target), 0, Math.max(count, 1) - 1)
+}
+
+// The inverse: where the Section has to be scrolled to for the Deck to rest on
+// a given Project. The Rail needs this to move the Deck, and it has to be the
+// exact inverse of `deckTargetIndex` or a dot lands somewhere other than the
+// Project it names.
+export function deckProgressForIndex(index, count) {
+  const n = Math.max(count, 1)
+  if (n === 1) return 0
+
+  const { head, handover } = DECK_BUDGET
+  const i = clamp(Math.round(index), 0, n - 1)
+  return clamp01((head + i * handover) / deckScrollSpan(n))
 }
 
 // Where one Project sits, given how far it is from the Project the Deck is

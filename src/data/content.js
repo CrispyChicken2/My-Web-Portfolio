@@ -81,6 +81,12 @@ const en = {
     label: '// 03 — SELECTED WORK',
     heading: 'Projects I actually finished.',
     screenshotAlt: '{title} — project screenshot',
+    // The Rail. Its dots name the Project they lead to rather than a number,
+    // so these stay correct when a fourth Project is added.
+    rail: {
+      label: 'Projects',
+      item: 'Project {n} of {total}: {title}',
+    },
     items: [
       {
         title: 'RenovTaCana',
@@ -213,6 +219,12 @@ const fr = {
     label: '// 03 — PROJETS PHARES',
     heading: 'Des projets que j\'ai menés à bon port.',
     screenshotAlt: '{title} — capture du projet',
+    // Le Rail. Ses points nomment le Projet vers lequel ils mènent plutôt
+    // qu'un numéro, pour rester justes quand un quatrième Projet arrive.
+    rail: {
+      label: 'Projets',
+      item: 'Projet {n} sur {total} : {title}',
+    },
     items: [
       {
         title: 'RenovTaCana',

@@ -343,28 +343,91 @@
      thing the max() does. It is meant to fire rarely; if it fires on a
      window in daily use, --panel-h is too large rather than this too
      eager. */
+  /* No media query: the Deck itself is desktop-only now, so this box never
+     exists below lg and the narrow branch it used to carry was dead. */
   .deck-panels {
-    position: relative;
-    height: 100%;
+    position: absolute;
+    /* The pane's own gutter, restated. Coming out of the flow means coming
+       out of the padding with it: an absolutely positioned box resolves
+       left/right against the padding box, so left: 0 would put a Panel
+       against the window edge while the header above it stayed inset. Above
+       sm the gutter is a constant 2.5rem, and the Deck starts above sm, so
+       this only ever needs the one value. */
+    left: 2.5rem;
+    right: 2.5rem;
+    height: var(--panel-h);
+    max-height: calc(100% - var(--panel-gap) * 2);
+    top: max(
+      var(--panel-gap),
+      calc(100% - 50 * var(--deck-vh) - var(--panel-h) / 2 - var(--panel-lift))
+    );
   }
-  @media (min-width: 1024px) {
-    .deck-panels {
-      position: absolute;
-      /* The pane's own gutter, restated. Coming out of the flow means
-         coming out of the padding with it: an absolutely positioned box
-         resolves left/right against the padding box, so left: 0 would put
-         a Panel against the window edge while the header above it stayed
-         inset. Above sm the gutter is a constant 2.5rem, and lg is above
-         sm, so this block only ever needs the one value. */
-      left: 2.5rem;
-      right: 2.5rem;
-      height: var(--panel-h);
-      max-height: calc(100% - var(--panel-gap) * 2);
-      top: max(
-        var(--panel-gap),
-        calc(100% - 50 * var(--deck-vh) - var(--panel-h) / 2 - var(--panel-lift))
-      );
+
+  /* -------------------------------------------------------------------
+     The Rail. It lives inside the Panel box, so its two positions are one
+     offset apart: tucked into the Panel's own padding on a narrower window,
+     and outside the Panel entirely once the window is wide enough to have a
+     gutter — which is where it reads as a scrollbar for the Deck rather than
+     as part of the card. Below that width there is no gutter left and it
+     would sit against the window edge, so it comes inside instead.
+     ------------------------------------------------------------------- */
+  .deck-rail {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    /* Above every Panel: the cards are stacked by index, and the Rail is not
+       one of them. */
+    z-index: 50;
+  }
+  @media (min-width: 1300px) {
+    .deck-rail {
+      right: -34px;
     }
+  }
+
+  /* The dot a Visitor sees is 9px; the target they have to hit is 24px, the
+     smallest a pointer target is allowed to be. Drawing the dot in ::before
+     is what lets those two be different numbers — a 9px button with 12px
+     between them would put adjacent targets 21px apart, close enough to
+     mis-hit and under the minimum besides. */
+  .deck-rail-dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    cursor: pointer;
+  }
+  .deck-rail-dot::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: var(--dot-idle);
+    transition:
+      background-color 220ms ease,
+      transform 220ms ease;
+  }
+  .deck-rail-dot:hover::before {
+    background: var(--fg4);
+  }
+  /* The site-wide focus ring squares its corners off at 5px, which on a round
+     target reads as a different shape rather than a focused one. */
+  .deck-rail-dot:focus-visible {
+    border-radius: 999px;
+  }
+  /* One dot active and the others alike — position, not progress. The Tokens
+     are the Experience timeline's, because a Project's Highlight sits beside
+     this and the Signal is spent there. */
+  .deck-rail-dot[data-active]::before {
+    background: var(--dot-active);
+    box-shadow: 0 0 12px var(--dot-active-glow);
+    transform: scale(1.5);
   }
 
   /* Mono Section Label (// 0X — LABEL) with its leading rule */
