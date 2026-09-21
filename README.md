@@ -44,8 +44,8 @@ remembered; visitors switch with the **EN | FR** toggle in the nav (logic in
 ### Adding a Project
 
 Add an object to `projects.items` in **both** Dictionaries. That is the whole
-job: the Deck sizes its Section from the Project count — one more handover —
-and the Rail grows a dot, so no layout, height or count needs changing. A Project may optionally carry `imageSlot: true` plus
+job: the Deck sizes its scroll track from the Project count — one more handover
+— and the Rail grows a dot, so no layout, height or count needs changing. A Project may optionally carry `imageSlot: true` plus
 an `image` path, and a `highlight` phrase that must appear verbatim inside its
 `description`.
 
@@ -149,14 +149,17 @@ design decision, not an implementation detail.
 
 All three are **spring-driven** rather than tied rigidly to the scroll offset,
 so they glide and settle instead of stopping wherever the wheel left them. The
-Deck goes further: scroll travels continuously between Projects
-(`deckTargetIndex`), flat near each one and steep between them, and a spring
-carries the cards along it (`deckCardState`) — so every turn of the wheel moves
-something while the Deck is always heading for a whole Project. Its scroll cost
-is counted in handovers rather than Projects (`DECK_BUDGET`), and one shared
-budget feeds the Section's length, the travel and the Rail's jump targets, so
-they cannot drift apart. See
-[ADR 0005](./docs/adr/0005-deck-stays-pinned-to-document-scroll.md).
+Deck goes further: it scrolls in a container of its own, so the pointer decides
+whether the wheel moves the Projects or the page, and past the last Project the
+scroll chains back to the page. Within that scroll it travels continuously
+between Projects (`deckTargetIndex`), flat near each one and steep between them,
+with a spring carrying the cards along it (`deckCardState`) — so every turn of
+the wheel moves something while the Deck is always heading for a whole Project.
+Its cost is counted in handovers rather than Projects (`DECK_BUDGET`), and one
+shared budget feeds the track's length, the travel and the Rail's jump targets,
+so they cannot drift apart. See
+[ADR 0006](./docs/adr/0006-deck-scrolls-independently.md), which supersedes
+[0005](./docs/adr/0005-deck-stays-pinned-to-document-scroll.md).
 
 ---
 

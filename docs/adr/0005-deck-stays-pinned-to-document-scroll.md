@@ -1,6 +1,9 @@
 # 0005 — The Deck stays pinned to the document scroll
 
-**Status:** accepted · 2026-09-21
+**Status:** superseded · 2026-09-21
+**Superseded by:** [ADR 0006](./0006-deck-scrolls-independently.md) — the Rail
+it did not have, and the repair whose reception it was betting on, both landed;
+the bet below resolved against this decision. Kept intact rather than rewritten.
 
 ## Context
 

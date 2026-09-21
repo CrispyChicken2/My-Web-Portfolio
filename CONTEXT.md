@@ -124,25 +124,36 @@ Project is the same object from one machine to the next; it gives up height
 only on a window too short to show it and the Deck's heading at once. The Deck
 is desktop-only: a phone is given the plain stack instead, every Project
 present at its own height and nothing moving.
-The Deck is driven by the page's own scroll and always travels toward a whole
-Project. Between two Projects the movement is a short, deliberate handover, so
-every turn of the wheel moves something — a Deck that holds still while the
-Visitor scrolls is a bug, not a pause. Its cost is counted in handovers and
-never in Projects: a hold at each end, one handover between each pair, so a
-new Project costs one handover.
-Every Project is still reached by scrolling down, and the Deck hides nothing
-from a Visitor who only skims. The Rail beside it is a second way to move,
-never the only one.
+The Deck has a scroll of its own, independent of the page's. A Visitor
+scrolling with the pointer over the Projects Section moves the Projects while
+the page stays where it is; scrolling anywhere else moves the page. Past the
+last Project the scroll hands back to the page, so the Deck is never somewhere
+a Visitor can be stuck — that is the difference between an independent scroll
+and a lock.
+Within its own scroll the Deck always travels toward a whole Project. Between
+two Projects the movement is a short, deliberate handover, so every turn of the
+wheel moves something — a Deck that holds still while the Visitor scrolls is a
+bug, not a pause. Its cost is counted in handovers and never in Projects: a
+hold at each end, one handover between each pair, so a new Project costs one
+handover.
+The Deck is therefore not unavoidable. A Visitor who never puts the pointer
+over the Section sees the first Project and scrolls past the rest. Nothing is
+hidden from them — the Rail says how many Projects there are and reaches any of
+them in one press — but the Deck no longer promises that every Project is
+reached by scrolling down. That was traded deliberately, twice over: see
+[ADR 0006](./docs/adr/0006-deck-scrolls-independently.md).
 _Avoid_: carousel, slider, stack
 
 **Rail**:
 The column of dots down the side of the Deck, one dot per Project. It reads as
 position and not as progress — one dot active and the others alike, saying
 "one before, one after" rather than how far through a track the Visitor is —
-and every dot is also a control that travels the Deck to its Project. It is
-always visible, because a Visitor who never goes looking is the one who most
-needs to know the other Projects exist. The Deck's header still says how many
-Projects there are; the Rail is the only thing that says which.
+and every dot is also a control that travels the Deck to its Project. It
+carries the count as well, and it is the only place either is reported: with
+the Deck no longer unavoidable, the Rail is what tells a Visitor scrolling past
+that there is more here than the one Project they can see, so it is always
+visible and it sits beside the Panel rather than anywhere they would have to
+look for it.
 _Avoid_: dots, ticks, indicator, scrollbar, pagination
 
 **Signal**:
