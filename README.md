@@ -44,8 +44,8 @@ remembered; visitors switch with the **EN | FR** toggle in the nav (logic in
 ### Adding a Project
 
 Add an object to `projects.items` in **both** Dictionaries. That is the whole
-job: the Deck sizes its Section from the Project count, so no layout, height
-or count needs changing. A Project may optionally carry `imageSlot: true` plus
+job: the Deck sizes its Section from the Project count — one more handover —
+and the Rail grows a dot, so no layout, height or count needs changing. A Project may optionally carry `imageSlot: true` plus
 an `image` path, and a `highlight` phrase that must appear verbatim inside its
 `description`.
 
@@ -129,6 +129,8 @@ hand-written surface it replaced.
 
 - `prefers-reduced-motion` → the Backdrop is still, the Deck is a plain
   vertical stack, and the Zoom moments are absent. All content is present.
+- Below `lg` → the same plain vertical stack. The Deck is desktop-only, so a
+  phone needs no gesture and carries no Rail.
 - WebGL unavailable → `FlatBackdrop`, a designed flat Backdrop in the same
   colours.
 ---
@@ -147,9 +149,14 @@ design decision, not an implementation detail.
 
 All three are **spring-driven** rather than tied rigidly to the scroll offset,
 so they glide and settle instead of stopping wherever the wheel left them. The
-Deck goes further: scroll picks a whole Project (`deckTargetIndex`) and a
-spring carries the cards there (`deckCardState`), so a Project can never be
-left stranded half-risen when the Visitor stops mid-scroll.
+Deck goes further: scroll travels continuously between Projects
+(`deckTargetIndex`), flat near each one and steep between them, and a spring
+carries the cards along it (`deckCardState`) — so every turn of the wheel moves
+something while the Deck is always heading for a whole Project. Its scroll cost
+is counted in handovers rather than Projects (`DECK_BUDGET`), and one shared
+budget feeds the Section's length, the travel and the Rail's jump targets, so
+they cannot drift apart. See
+[ADR 0005](./docs/adr/0005-deck-stays-pinned-to-document-scroll.md).
 
 ---
 
@@ -158,11 +165,14 @@ left stranded half-risen when the Visitor stops mid-scroll.
 `npm test` runs Vitest, which reuses `vite.config.js`, so there is no second
 build pipeline and no production dependency.
 
-- **`src/motion/params.test.js`** — the Deck always names a whole Project and
-  reaches every one of them in order at counts of three and above, clamped
-  outside the Section; a card's derived transform stays finite and moves
-  smoothly through the fractional offsets a spring passes through; and all
-  three Zoom moments clamp outside their range.
+- **`src/motion/params.test.js`** — the Deck travels continuously, never
+  doubles back, rests on every Project in order at counts of three and above
+  and clamps outside the Section; it moves for most of the Section and is never
+  still for a quarter of it; a Project round-trips through the scroll position
+  that rests on it, which is what makes a Rail dot land where it says; a card's
+  derived transform stays finite and moves smoothly through the fractional
+  offsets a spring passes through; and all three Zoom moments clamp outside
+  their range.
 - **`src/data/content.test.js`** — the two Dictionaries have the same key
   structure.
 

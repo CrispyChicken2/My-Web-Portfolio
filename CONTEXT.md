@@ -116,28 +116,45 @@ state.
 _Avoid_: image placeholder, thumbnail
 
 **Deck**:
-How the Projects Section presents its Projects: on a desktop each one rests at
+How the Projects Section presents its Projects on a desktop: each one rests at
 a constant size near the centre of the viewport while the next rises over it
 from below, the covered Project climbing as it recedes behind. A Project is
 the size the site chose for it rather than a slice of the window, so the same
 Project is the same object from one machine to the next; it gives up height
-only on a window too short to show it and the Deck's heading at once. A phone
-keeps the stacked layout, where a Project is as tall as its content.
-The Deck always rests ON a Project and never between two — scrolling chooses
-which one, and the movement there is a single, complete travel rather than
-something dragged along by the wheel. Every Project is reached by scrolling
-down, so the Deck adds no second way to navigate and hides nothing from a
-Visitor who only skims.
+only on a window too short to show it and the Deck's heading at once. The Deck
+is desktop-only: a phone is given the plain stack instead, every Project
+present at its own height and nothing moving.
+The Deck is driven by the page's own scroll and always travels toward a whole
+Project. Between two Projects the movement is a short, deliberate handover, so
+every turn of the wheel moves something — a Deck that holds still while the
+Visitor scrolls is a bug, not a pause. Its cost is counted in handovers and
+never in Projects: a hold at each end, one handover between each pair, so a
+new Project costs one handover.
+Every Project is still reached by scrolling down, and the Deck hides nothing
+from a Visitor who only skims. The Rail beside it is a second way to move,
+never the only one.
 _Avoid_: carousel, slider, stack
+
+**Rail**:
+The column of dots down the side of the Deck, one dot per Project. It reads as
+position and not as progress — one dot active and the others alike, saying
+"one before, one after" rather than how far through a track the Visitor is —
+and every dot is also a control that travels the Deck to its Project. It is
+always visible, because a Visitor who never goes looking is the one who most
+needs to know the other Projects exist. The Deck's header still says how many
+Projects there are; the Rail is the only thing that says which.
+_Avoid_: dots, ticks, indicator, scrollbar, pagination
 
 **Signal**:
 The one acid accent, reserved for the few things the site actually wants
 pressed or read: the Hero calls to action, the active nav item, and a
 Project's Highlight. One hue at one value, used both as text and as a filled
 surface. Its scarcity is the whole point — a second Signal, or a decorative
-use of the first, spends it. Focus rings, the selection colour, the scroll
-indicator and the typewriter caret are all states or decoration, so none of
-them is ever the Signal.
+use of the first, spends it. Focus rings, the selection colour and the
+typewriter caret are states or decoration, so none of them is ever the Signal.
+Neither is the Rail — not because it is decoration, since it is a control, but
+because the Signal is scarce: the Rail stands beside a Project's Highlight, and
+a viewport holding two acid things holds no Signal at all.
 _Avoid_: accent, highlight (a Highlight is something else — see above), CTA
 colour
 
