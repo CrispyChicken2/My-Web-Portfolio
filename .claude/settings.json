@@ -20,13 +20,7 @@
       "PowerShell(npm --version)"
     ],
     "deny": [
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
       "Bash(git mv:*)",
-      "PowerShell(git add:*)",
-      "PowerShell(git commit:*)",
-      "PowerShell(git push:*)",
       "PowerShell(git mv:*)"
     ]
   },

@@ -20,9 +20,10 @@ Single-context: `CONTEXT.md` at the repo root, ADRs under `docs/adr/`. See `docs
 
 ## Working agreements
 
-- **Commits and pushes are the owner's alone.** Never run `git add`, `git commit`,
-  `git push`, or `git mv`. Leave changes in the working tree and say what you
-  changed.
+- **Commit and push only when the owner asks, never on your own initiative.**
+  Finishing a piece of work means leaving it in the working tree and saying what
+  changed — not committing it. When the owner does ask, work on a branch rather
+  than committing to `main`. `git mv` stays off limits.
 - Every visible string exists in both Locales. A string added to one Dictionary
   and not the other is a bug.
 - Retheming happens in the Token block. Components never carry colour of their
