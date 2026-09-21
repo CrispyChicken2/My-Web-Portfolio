@@ -132,6 +132,13 @@
 
   html {
     scroll-behavior: smooth;
+    /* One proximity snap point, claimed by the Projects Section alone, so the
+       Deck is never driven while it is half above the top of the window —
+       which it can be now that it is ordinary page content rather than a
+       sticky pane. `proximity`, never `mandatory`: mandatory snapping on a
+       document this long fights find-in-page, keyboard paging and the Nav's
+       six anchor links. */
+    scroll-snap-type: y proximity;
   }
 
   /* Anchor targets clear the fixed nav */
@@ -291,7 +298,41 @@
      exactly the pane it is measured against rather than the larger
      viewport a phone reports before its address bar collapses.
      ------------------------------------------------------------------- */
+  /* The Section is one viewport of page height now, and no more. The scroll
+     the Deck needs is its own, inside .deck-scroller — which is what makes
+     the two independent: with the pointer over this Section the wheel moves
+     the Projects and the page stays put, and with the pointer anywhere else
+     the page scrolls straight past.
+
+     overscroll-behavior stays at its default of `auto` on purpose, and the
+     declaration is here to say so: once the Deck reaches its last Project the
+     scroll chains onward and the page carries on. `contain` would be the
+     literal reading of "independent", and it would trap a Visitor who reached
+     the end with the pointer still over the tiles — a harder lock than the
+     sticky pane this replaces. Chaining is one-directional, so a page flick
+     is never captured by this box as it slides under the cursor: engaging the
+     Deck takes a fresh gesture with the pointer already here, which is what
+     lets a skimmer pass and a reader stop.
+
+     See ADR 0006. */
   .deck {
+    height: 100vh;
+    scroll-snap-align: start;
+  }
+  .deck-scroller {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: auto;
+    /* No scrollbar: the Rail reports position, and two indicators in one
+       region saying the same thing in different languages is the tick rail
+       all over again. */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .deck-scroller::-webkit-scrollbar {
+    display: none;
+  }
+  .deck-track {
     --deck-vh: 1vh;
     /* What a Panel is: one height the site chose, a nudge up from exact
        centre because a card at the mathematical middle reads as sitting
@@ -303,11 +344,18 @@
     --panel-gap: 24px;
     height: calc(var(--deck-stages) * 100vh);
   }
+  /* Sticky inside the track rather than inside the document — the same pane
+     it always was, just pinned to its own scroller now. */
   .deck-pane {
+    position: sticky;
+    top: 0;
     height: 100vh;
   }
   @supports (height: 100svh) {
     .deck {
+      height: 100svh;
+    }
+    .deck-track {
       --deck-vh: 1svh;
       height: calc(var(--deck-stages) * 100svh);
     }
@@ -376,6 +424,10 @@
     right: 14px;
     top: 50%;
     transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
     /* Above every Panel: the cards are stacked by index, and the Rail is not
        one of them. */
     z-index: 50;
@@ -384,6 +436,18 @@
     .deck-rail {
       right: -34px;
     }
+  }
+
+  /* The count, sitting above the dots. Small and dim: it reports, it is not
+     asking to be pressed, and the Signal is spent on the Highlight beside it. */
+  .deck-rail-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    line-height: 1.35;
+    letter-spacing: 0.5px;
+    color: var(--fg4);
   }
 
   /* The dot a Visitor sees is 9px; the target they have to hit is 24px, the

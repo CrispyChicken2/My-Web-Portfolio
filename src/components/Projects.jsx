@@ -135,9 +135,19 @@ function ProjectPanel({ project, index, alt, reachable = true }) {
 // not a control only some Visitors have. Its colours come from the same
 // Tokens as the Experience timeline's dots: the Rail stands beside a Project's
 // Highlight, and a viewport holding two acid things holds no Signal at all.
-function Rail({ items, front, strings, onSelect }) {
+function Rail({ items, front, count, strings, onSelect }) {
   return (
     <nav className="deck-rail" aria-label={strings.label}>
+      {/* The count, moved here from the Deck header. The Deck is no longer
+          unavoidable — a Visitor who never puts the pointer over the Section
+          scrolls straight past it — so this is the main thing telling them
+          there is more than the one Project they can see, and it has to be
+          where they are already looking. */}
+      <div className="deck-rail-count font-mono" aria-hidden="true">
+        <span style={{ color: 'var(--fg1)' }}>{String(front + 1).padStart(2, '0')}</span>
+        <span className="opacity-40">/</span>
+        <span>{String(count).padStart(2, '0')}</span>
+      </div>
       <ul className="m-0 flex list-none flex-col items-center gap-1 p-0">
         {items.map((project, index) => {
           const active = index === front
@@ -219,15 +229,23 @@ function DeckCard({ project, index, current, alt, reachable }) {
 // Project costs one handover and is a content edit and nothing else.
 function Deck({ label, heading, items, altFor, rail }) {
   const ref = useRef(null)
+  const scroller = useRef(null)
   const travel = useRef(null)
+  const parking = useRef(null)
   const count = items.length
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
+  // The Deck reads its own scroll, not the page's. That is the whole point:
+  // with the pointer over the Section the wheel moves the Projects and the
+  // page stays where it is, and with the pointer anywhere else the page
+  // scrolls straight past. Nothing here intercepts a wheel event — the region
+  // is a real scroll container and the browser decides which one the gesture
+  // belongs to, which is why trackpad momentum behaves.
+  const { scrollYProgress } = useScroll({ container: scroller })
   const [front, setFront] = useState(0)
 
   // Scroll travels continuously between Projects, holding near each one; the
   // spring carries the cards along it. The two steps are what make the Deck
   // arrive instead of tracking the wheel — and the travel is what stops most
-  // of the Section's scroll from changing nothing at all.
+  // of the Deck's scroll from changing nothing at all.
   const target = useTransform(scrollYProgress, (p) => deckTargetIndex(p, count))
   const current = useSpring(target, DECK_SPRING)
 
@@ -238,55 +256,87 @@ function Deck({ label, heading, items, altFor, rail }) {
     setFront((shown) => (shown === index ? shown : index))
   })
 
-  // Pressing a dot has to move the document, not the spring. The Deck's
-  // position is derived from scroll, so driving the spring alone would leave
-  // the two disagreeing and the Visitor's next turn of the wheel would yank
-  // them back to where they were. The travel is animated here rather than
-  // handed to the browser's smooth scrolling, whose duration and easing differ
-  // between browsers — the same click would visibly behave differently in two
-  // of them. Passing through the Projects in between comes for free: the
-  // document is scrolled through them.
+  // Pressing a dot moves the Deck's own scroller, not the spring. The Deck's
+  // position is derived from that scroller, so driving the spring alone would
+  // leave the two disagreeing and the Visitor's next turn of the wheel would
+  // yank them back. Passing through the Projects in between comes for free:
+  // the scroller is scrolled through them.
+  //
+  // It happens in two phases, because the Section is ordinary page content now
+  // and can be sitting half above the top of the window when a dot is pressed.
+  // Park the Section first, then travel the Deck — otherwise the Visitor
+  // watches a Panel they can only half see change into another one.
+  //
+  // Every scroll here passes `behavior: 'instant'`, deliberately: the
+  // stylesheet sets `scroll-behavior: smooth` on the document, and a
+  // two-argument scrollTo inherits it, so each frame of the easing would start
+  // a *new* browser smooth scroll toward a moving target — the mushy,
+  // per-browser drift these animations exist to avoid.
   const goTo = useCallback(
     (index) => {
+      const box = scroller.current
       const section = ref.current
-      // Only refuse to move if the Deck is genuinely resting on that Project.
-      // Comparing against the counter instead would refuse precisely when the
-      // Deck has come to rest mid-handover — the one time the Visitor most
-      // needs a dot to pull it onto a whole Project.
-      if (!section || Math.abs(target.get() - index) < 0.01) return
-      travel.current?.stop()
+      if (!box || !section) return
 
-      const span = section.offsetHeight - window.innerHeight
+      const span = box.scrollHeight - box.clientHeight
       if (span <= 0) return
-      const top = section.getBoundingClientRect().top + window.scrollY
-      const to = top + deckProgressForIndex(index, count) * span
 
-      // `behavior: 'instant'` on every one of these, deliberately: the
-      // stylesheet sets `scroll-behavior: smooth` on the document, and a
-      // two-argument scrollTo inherits it — so each frame of the easing below
-      // would start a *new* browser smooth scroll toward a moving target,
-      // which is the mushy per-browser drift this function exists to avoid.
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        window.scrollTo({ top: to, behavior: 'instant' })
-        return
+      const to = deckProgressForIndex(index, count) * span
+      const parkTo = section.getBoundingClientRect().top + window.scrollY
+      const parked = Math.abs(window.scrollY - parkTo) < 2
+      // Only refuse to move if the Deck is genuinely resting on that Project
+      // *and* the Section is already in place. Comparing against the counter
+      // instead would refuse precisely when the Deck has come to rest
+      // mid-handover — the one time a dot is most needed.
+      if (parked && Math.abs(target.get() - index) < 0.01) return
+
+      travel.current?.stop()
+      parking.current?.stop()
+
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      const travelDeck = () => {
+        if (reduce) {
+          box.scrollTo({ top: to, behavior: 'instant' })
+          return
+        }
+        // Long jumps take longer, but not proportionally — crossing the whole
+        // Deck should still feel like one movement rather than a tour.
+        const screens = Math.min(Math.abs(to - box.scrollTop) / box.clientHeight, 3)
+        travel.current = animate(box.scrollTop, to, {
+          duration: 0.35 + screens * 0.32,
+          ease: [0.32, 0.72, 0, 1],
+          onUpdate: (value) => box.scrollTo({ top: value, behavior: 'instant' }),
+        })
       }
 
-      // Long jumps take longer, but not proportionally — crossing the whole
-      // Deck should still feel like one movement rather than a tour.
-      const screens = Math.min(Math.abs(to - window.scrollY) / window.innerHeight, 3)
-      travel.current = animate(window.scrollY, to, {
-        duration: 0.35 + screens * 0.32,
+      if (parked) {
+        travelDeck()
+        return
+      }
+      if (reduce) {
+        window.scrollTo({ top: parkTo, behavior: 'instant' })
+        travelDeck()
+        return
+      }
+      parking.current = animate(window.scrollY, parkTo, {
+        duration: 0.4,
         ease: [0.32, 0.72, 0, 1],
         onUpdate: (value) => window.scrollTo({ top: value, behavior: 'instant' }),
       })
+      parking.current.then(travelDeck)
     },
     [count, target],
   )
 
   // A Visitor who starts scrolling mid-travel means it: let them take over
-  // rather than fighting the animation for the rest of its duration.
+  // rather than fighting the animation for the rest of its duration. The
+  // listener is on the window because either scroller may be the one moving.
   useEffect(() => {
-    const cancel = () => travel.current?.stop()
+    const cancel = () => {
+      travel.current?.stop()
+      parking.current?.stop()
+    }
     window.addEventListener('wheel', cancel, { passive: true })
     window.addEventListener('touchstart', cancel, { passive: true })
     return () => {
@@ -297,52 +347,55 @@ function Deck({ label, heading, items, altFor, rail }) {
   }, [])
 
   return (
-    <section
-      id="projects"
-      ref={ref}
-      className="deck relative z-[1]"
-      style={{ '--deck-stages': deckSectionViewports(count) }}
-    >
-      <div className="deck-pane sticky top-0 flex flex-col overflow-hidden">
-        {/* The top padding clears the floating Nav, which ends 68px down, and
-            nothing more: every pixel of header band is paid for twice over by
-            the Panel below it, which can only centre on the viewport once the
-            header leaves it room on both sides of the middle. */}
-        <div className="on-field mx-auto flex w-full max-w-content items-end justify-between gap-6 px-6 pb-6 pt-24 sm:px-10">
-          <div>
-            <div className="mono-label mb-3">{label}</div>
-            <h2 className="m-0 max-w-[20ch] font-display text-[clamp(26px,3.2vw,40px)] font-bold tracking-[-1px]">
-              {heading}
-            </h2>
-          </div>
+    <section id="projects" ref={ref} className="deck relative z-[1]">
+      {/* The scroll container. The track inside it is what gives it range;
+          the pane is sticky within the track, exactly as it used to be sticky
+          within the document — the pattern is unchanged, it has just moved
+          inside a box of its own. */}
+      <div ref={scroller} className="deck-scroller">
+        <div className="deck-track" style={{ '--deck-stages': deckSectionViewports(count) }}>
+          <div className="deck-pane flex flex-col overflow-hidden">
+            {/* The top padding clears the floating Nav, which ends 68px down,
+                and nothing more: every pixel of header band is paid for twice
+                over by the Panel below it, which can only centre on the
+                viewport once the header leaves it room on both sides of the
+                middle. The counter that used to sit at the far end of this row
+                has moved onto the Rail — with the Deck no longer unavoidable,
+                the count is the main thing telling a Visitor there is more
+                here, and it belongs beside the Panel rather than in the
+                opposite corner. */}
+            <div className="on-field mx-auto w-full max-w-content px-6 pb-6 pt-24 sm:px-10">
+              <div className="mono-label mb-3">{label}</div>
+              <h2 className="m-0 max-w-[20ch] font-display text-[clamp(26px,3.2vw,40px)] font-bold tracking-[-1px]">
+                {heading}
+              </h2>
+            </div>
 
-          {/* How many Projects there are. Which one the Visitor is on is the
-              Rail's job — the tick rail that used to sit here said the same
-              thing a third time, and said it in the opposite corner of the
-              screen from the Project being read. */}
-          <div className="shrink-0 font-mono text-[13px] text-dim">
-            <span style={{ color: 'var(--fg1)' }}>{String(front + 1).padStart(2, '0')}</span>
-            <span className="px-1 opacity-50">/</span>
-            {String(count).padStart(2, '0')}
-          </div>
-        </div>
-
-        <div className="relative mx-auto w-full max-w-content flex-1 px-6 pb-10 sm:px-10">
-          <div className="deck-panels">
-            {items.map((project, index) => (
-              <DeckCard
-                key={project.title}
-                project={project}
-                index={index}
-                current={current}
-                alt={altFor(project)}
-                reachable={index === front}
-              />
-            ))}
-            {/* Inside the Panel box rather than the pane, so its two positions
-                — in the Panel's own padding, and out in the gutter beside it —
-                are one offset apart rather than two viewport calculations. */}
-            <Rail items={items} front={front} strings={rail} onSelect={goTo} />
+            <div className="relative mx-auto w-full max-w-content flex-1 px-6 pb-10 sm:px-10">
+              <div className="deck-panels">
+                {items.map((project, index) => (
+                  <DeckCard
+                    key={project.title}
+                    project={project}
+                    index={index}
+                    current={current}
+                    alt={altFor(project)}
+                    reachable={index === front}
+                  />
+                ))}
+                {/* Inside the Panel box rather than the pane, so its two
+                    positions — in the Panel's own padding, and out in the
+                    gutter beside it — are one offset apart rather than two
+                    viewport calculations. */}
+                <Rail
+                  items={items}
+                  front={front}
+                  count={count}
+                  strings={rail}
+                  onSelect={goTo}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
