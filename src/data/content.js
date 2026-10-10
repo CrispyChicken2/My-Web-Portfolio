@@ -117,6 +117,14 @@ const en = {
         tech: ['Python', 'scikit-learn', 'pandas', 'numPy', 'SciPy'],
         github: 'https://github.com/CrispyChicken2/World-Cup-2026-predictor-',
       },
+      {
+        title: 'Phish Hunter',
+        category: 'Cybersecurity · Vision-Language Models',
+        description:
+          'A tool that catches fake websites impersonating brands like PayPal or Microsoft as soon as they go online. It watches newly issued TLS certificates for lookalike domain names, safely screenshots the suspicious ones in an isolated container, and asks a vision model whether the page is phishing, parked or legitimate (61.5% triage accuracy vs 9.4% on names alone).',
+        tech: ['Python', 'Playwright', 'DuckDB', 'Docker', 'Mistral API', 'Streamlit'],
+        github: 'https://github.com/CrispyChicken2/Phish-Hunter',
+      },
     ],
   },
 
@@ -252,6 +260,14 @@ const fr = {
           "Un pipeline complet qui prédit la Coupe du Monde 2026 — phase de groupes, tableau final, champion, jusqu'au score de la finale. Sous le capot : des ratings Elo causaux, un modèle de buts double-Poisson et une simulation Monte-Carlo, le tout validé par un backtest temporel sans fuite de données (55,7 % de précision sur les résultats des matchs).",
         tech: ['Python', 'scikit-learn', 'pandas', 'NumPy', 'SciPy'],
         github: 'https://github.com/CrispyChicken2/World-Cup-2026-predictor-',
+      },
+      {
+        title: 'Phish Hunter',
+        category: 'Cybersécurité · Modèles vision-langage',
+        description:
+          "Un outil qui repère les faux sites usurpant des marques comme PayPal ou Microsoft dès leur mise en ligne. Il surveille les certificats TLS nouvellement émis pour détecter les noms de domaine trompeurs, capture les pages suspectes en toute sécurité dans un conteneur isolé, puis demande à un modèle de vision si la page relève du phishing, du domaine parké ou du site légitime (61,5 % de précision au tri, contre 9,4 % sur les noms seuls).",
+        tech: ['Python', 'Playwright', 'DuckDB', 'Docker', 'Mistral API', 'Streamlit'],
+        github: 'https://github.com/CrispyChicken2/Phish-Hunter',
       },
     ],
   },
