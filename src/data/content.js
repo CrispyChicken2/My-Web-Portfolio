@@ -119,7 +119,7 @@ const en = {
       },
       {
         title: 'Phish Hunter',
-        category: 'Cybersecurity · Vision-Language Models',
+        category: 'Cybersecurity · Vision-Language Models · AI Agents',
         description:
           'A tool that catches fake websites impersonating brands like PayPal or Microsoft as soon as they go online. It watches newly issued TLS certificates for lookalike domain names, safely screenshots the suspicious ones in an isolated container, and asks a vision model whether the page is phishing, parked or legitimate (61.5% triage accuracy vs 9.4% on names alone).',
         tech: ['Python', 'Playwright', 'DuckDB', 'Docker', 'Mistral API', 'Streamlit'],
@@ -263,7 +263,7 @@ const fr = {
       },
       {
         title: 'Phish Hunter',
-        category: 'Cybersécurité · Modèles vision-langage',
+        category: 'Cybersécurité · Modèles vision-langage · Agents IA',
         description:
           "Un outil qui repère les faux sites usurpant des marques comme PayPal ou Microsoft dès leur mise en ligne. Il surveille les certificats TLS nouvellement émis pour détecter les noms de domaine trompeurs, capture les pages suspectes en toute sécurité dans un conteneur isolé, puis demande à un modèle de vision si la page relève du phishing, du domaine parké ou du site légitime (61,5 % de précision au tri, contre 9,4 % sur les noms seuls).",
         tech: ['Python', 'Playwright', 'DuckDB', 'Docker', 'Mistral API', 'Streamlit'],
