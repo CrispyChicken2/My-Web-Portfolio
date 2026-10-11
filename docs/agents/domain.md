@@ -11,13 +11,13 @@ This repo is **single-context**: one `CONTEXT.md` at the root, with ADRs under
 - **`CONTEXT.md`** at the repo root: the shared vocabulary for the portfolio —
   Content terms (Locale, Dictionary, Section, Label, Tag, Group, Project,
   Highlight, Entry, Visitor) and Appearance terms (Token, Backdrop, Field,
-  Panel, Glass, Liquid glass, Pill, Image slot, Deck, Signal, Tone, Zoom
+  Panel, Glass, Pill, Image slot, Deck, Rail, Figure, Signal, Tone, Zoom
   moment). It is vocabulary only; for how things are built or deployed, see
   [README.md](../../README.md).
 - **`docs/adr/`**: read ADRs that touch the area you're about to work in.
 
 If any of these files don't exist, **proceed silently**. Don't flag their
-absence; don't suggest creating them upfront. `docs/adr/` does not exist yet.
+absence; don't suggest creating them upfront.
 The `/domain-modeling` skill (reached via `/grill-with-docs` and
 `/improve-codebase-architecture`) creates them lazily when terms or decisions
 actually get resolved.
@@ -28,9 +28,8 @@ actually get resolved.
 /
 ├── CONTEXT.md          ← the glossary
 ├── README.md           ← how it's built and deployed
-├── SPECS.md            ← the approved spec for in-flight work
 ├── docs/
-│   ├── adr/            ← created lazily, when a decision is actually recorded
+│   ├── adr/            ← one file per recorded decision
 │   └── agents/         ← this file, plus issue-tracker.md
 └── src/
 ```
@@ -44,8 +43,8 @@ single Vite app, not a monorepo. If it ever splits into packages, re-run
 When your output names a domain concept (in an issue title, a refactor proposal,
 a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift
 to synonyms the glossary explicitly avoids — each entry lists its own _Avoid_
-line (a Panel is not a "card", the Backdrop is not the "background", a Pill is
-not real Liquid glass).
+line (a Panel is not a "card", the Backdrop is not the "background", the Deck
+is not a "carousel").
 
 If the concept you need isn't in the glossary yet, that's a signal: either
 you're inventing language the project doesn't use (reconsider) or there's a real

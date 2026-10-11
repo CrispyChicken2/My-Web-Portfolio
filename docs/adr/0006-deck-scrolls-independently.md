@@ -1,6 +1,9 @@
 # 0006 — The Deck scrolls independently of the page
 
-**Status:** accepted · 2026-09-21
+**Status:** superseded · 2026-10-11
+**Superseded by:** [ADR 0007](./0007-deck-slides-horizontally.md) — the Deck
+left the page's axis altogether once it had to hold five or six Projects. Kept
+intact rather than rewritten.
 **Supersedes:** [ADR 0005](./0005-deck-stays-pinned-to-document-scroll.md)
 
 ## Context

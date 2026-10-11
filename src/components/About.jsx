@@ -8,7 +8,7 @@ import { ZOOM_SPRING, aboutArrival, blurFilter, imageResolve } from '../motion/p
 
 const TAG_ICONS = { briefcase: BriefcaseIcon, cap: CapIcon, zap: ZapIcon }
 
-// Zoom moment 3 of 3: the site's one photograph resolves as it enters — it
+// Zoom moment 2 of 2: the site's one photograph resolves as it enters — it
 // arrives slightly too large and out of focus, and settles.
 function Portrait({ src, alt, placeholder }) {
   const ref = useRef(null)
@@ -49,7 +49,7 @@ export default function About() {
     .slice(0, 2)
     .toUpperCase()
 
-  // Zoom moment 2 of 3: About arrives from behind the departing Hero, so the
+  // Zoom moment 1 of 2, its arriving half: About arrives from behind the departing Hero, so the
   // Visitor's first scroll reads as travelling forward rather than panning.
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'start center'] })
   const progress = useSpring(scrollYProgress, ZOOM_SPRING)
