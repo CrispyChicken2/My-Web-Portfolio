@@ -86,6 +86,8 @@ const en = {
     rail: {
       label: 'Projects',
       item: 'Project {n} of {total}: {title}',
+      previous: 'Previous project',
+      next: 'Next project',
     },
     items: [
       {
@@ -232,6 +234,8 @@ const fr = {
     rail: {
       label: 'Projets',
       item: 'Projet {n} sur {total} : {title}',
+      previous: 'Projet précédent',
+      next: 'Projet suivant',
     },
     items: [
       {
