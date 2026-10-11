@@ -10,6 +10,7 @@ import {
 } from 'framer-motion'
 import { useLang } from '../i18n'
 import ImageSlot from './ImageSlot'
+import PacMan from './PacMan'
 import {
   DECK_SPRING,
   blurFilter,
@@ -373,6 +374,7 @@ function Deck({ label, heading, items, altFor, rail }) {
 
             <div className="relative mx-auto w-full max-w-content flex-1 px-6 pb-10 sm:px-10">
               <div className="deck-panels">
+                <PacMan />
                 {items.map((project, index) => (
                   <DeckCard
                     key={project.title}
@@ -415,7 +417,8 @@ function PlainStack({ label, heading, items, altFor }) {
         </h2>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="relative flex flex-col gap-6">
+        <PacMan />
         {items.map((project, index) => (
           <ProjectPanel key={project.title} project={project} index={index} alt={altFor(project)} />
         ))}

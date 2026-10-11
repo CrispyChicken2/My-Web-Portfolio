@@ -122,6 +122,22 @@
     --dot-active: var(--ice);
     --dot-active-glow: rgba(143, 189, 196, 0.5);
     --dot-idle: var(--fg8);
+
+    /* --- the Pac-Man figure ---------------------------------------- */
+    /* The one warm ramp on the site, and it belongs to the decorative
+       figure behind the Projects alone: brightest to deepest, then its
+       pellets. None of these is the Signal, and nothing else may use
+       them. */
+    --pac-0: #fff6b8;
+    --pac-1: #ffdc4a;
+    --pac-2: #f4b21f;
+    --pac-3: #cf7f14;
+    --pac-4: #8a4f10;
+    --pac-pellet: #f6ead0;
+    /* Its three ghosts. */
+    --ghost-0: #ff5a52;
+    --ghost-1: #ffa9dc;
+    --ghost-2: #5fe6ee;
     --ring: rgba(143, 189, 196, 0.9);
     --select-bg: rgba(143, 189, 196, 0.32);
     --select-fg: var(--bg);
@@ -492,6 +508,106 @@
     background: var(--dot-active);
     box-shadow: 0 0 12px var(--dot-active-glow);
     transform: scale(1.5);
+  }
+
+  /* -------------------------------------------------------------------
+     The Pac-Man figure. It stands behind the Projects and overhangs the
+     top-right corner of the Panel in front of it, so its lower-left is
+     covered by that Panel on purpose. Desktop only: below lg there is no
+     clear band beside the heading for it to stand in.
+
+     Every frame is stacked in one <pre> and the strip is stepped upward one
+     frame at a time. That keeps the loop a transform on the compositor —
+     no text is rewritten and nothing re-renders while it plays.
+
+     The 10px size and line-height are the grid the figure was sampled on
+     (src/components/PacMan.jsx); change them there and here together.
+     ------------------------------------------------------------------- */
+  .pac {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .pac {
+      /* Right-aligned inside a box only as wide as the body and its pellets,
+         so on a window with no room beside the heading the ghosts — the
+         leftmost part of the strip — are what gets cut off. */
+      display: flex;
+      justify-content: flex-end;
+      /* Not stretch: the strip must keep its own height, every frame of it,
+         or stepping it by its own height stops landing on frames. */
+      align-items: flex-start;
+      width: var(--pac-near-w);
+      position: absolute;
+      right: -30px;
+      bottom: 100%;
+      /* How much of it sits below the top edge of the Panel. Its height
+         comes from the component, which knows how many rows it drew. */
+      margin-bottom: -100px;
+      overflow: hidden;
+      /* Behind every Panel, which is the point of it. */
+      z-index: -1;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  }
+  /* Once the window has a gutter beside the Panel, it leans out into it,
+     and there is room beside the heading for the ghosts as well. */
+  @media (min-width: 1300px) {
+    .pac {
+      right: -90px;
+      width: auto;
+    }
+  }
+  .pac pre {
+    @apply font-mono;
+    flex-shrink: 0;
+    margin: 0;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 10px;
+    letter-spacing: 0;
+    white-space: pre;
+    animation-name: pac-frames;
+    animation-iteration-count: infinite;
+  }
+  .pac-t0 {
+    color: var(--pac-0);
+  }
+  .pac-t1 {
+    color: var(--pac-1);
+  }
+  .pac-t2 {
+    color: var(--pac-2);
+  }
+  .pac-t3 {
+    color: var(--pac-3);
+  }
+  .pac-t4 {
+    color: var(--pac-4);
+  }
+  .pac-tp {
+    color: var(--pac-pellet);
+  }
+  .pac-g0 {
+    color: var(--ghost-0);
+  }
+  .pac-g1 {
+    color: var(--ghost-1);
+  }
+  .pac-g2 {
+    color: var(--ghost-2);
+  }
+  @keyframes pac-frames {
+    to {
+      transform: translateY(-100%);
+    }
+  }
+  /* Still, on an open-mouthed frame: the figure stays, the chomping goes. */
+  @media (prefers-reduced-motion: reduce) {
+    .pac pre {
+      animation: none;
+    }
   }
 
   /* Mono Section Label (// 0X — LABEL) with its leading rule */
