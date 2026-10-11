@@ -55,7 +55,7 @@ export default function Hero() {
   const roles = t.hero.roles
   const ref = useRef(null)
 
-  // Zoom moment 1 of 3: the first scroll out of the Hero. The Hero pushes past
+  // Zoom moment 1 of 2, its leaving half: the first scroll out of the Hero. The Hero pushes past
   // the Visitor rather than sliding away, so the move reads as forward through
   // depth. The numbers are the motion module's, not this component's.
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })

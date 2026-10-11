@@ -80,9 +80,9 @@ _Avoid_: background (ambiguous with a Panel's own background), hero background
 
 **Field**:
 What the Backdrop depicts: a slowly moving, softly lit form whose colour
-drifts across the whole viewport. The Field is the only place on the site
-where colour is allowed to be lavish, which is what lets the content layer
-stay austere — and it is the only place the retired accents may reappear,
+drifts across the whole viewport. The Field is where colour is allowed to be
+lavish, which is what lets the content layer stay austere — the Figure is the
+one other place — and it is the only place the retired accents may reappear,
 because its colours are not Tokens. It runs at full strength and is never
 dimmed to make the content readable; text that sits on it carries its own
 halo instead. The Field comes from a third-party preset, so it is configured,
@@ -116,45 +116,43 @@ state.
 _Avoid_: image placeholder, thumbnail
 
 **Deck**:
-How the Projects Section presents its Projects on a desktop: each one rests at
-a constant size near the centre of the viewport while the next rises over it
-from below, the covered Project climbing as it recedes behind. A Project is
-the size the site chose for it rather than a slice of the window, so the same
-Project is the same object from one machine to the next; it gives up height
-only on a window too short to show it and the Deck's heading at once. The Deck
-is desktop-only: a phone is given the plain stack instead, every Project
-present at its own height and nothing moving.
-The Deck has a scroll of its own, independent of the page's. A Visitor
-scrolling with the pointer over the Projects Section moves the Projects while
-the page stays where it is; scrolling anywhere else moves the page. Past the
-last Project the scroll hands back to the page, so the Deck is never somewhere
-a Visitor can be stuck — that is the difference between an independent scroll
-and a lock.
-Within its own scroll the Deck always travels toward a whole Project. Between
-two Projects the movement is a short, deliberate handover, so every turn of the
-wheel moves something — a Deck that holds still while the Visitor scrolls is a
-bug, not a pause. Its cost is counted in handovers and never in Projects: a
-hold at each end, one handover between each pair, so a new Project costs one
-handover.
-The Deck is therefore not unavoidable. A Visitor who never puts the pointer
-over the Section sees the first Project and scrolls past the rest. Nothing is
-hidden from them — the Rail says how many Projects there are and reaches any of
-them in one press — but the Deck no longer promises that every Project is
-reached by scrolling down. That was traded deliberately, twice over: see
-[ADR 0006](./docs/adr/0006-deck-scrolls-independently.md).
+How the Projects Section presents its Projects on a desktop: side by side on a
+track that slides horizontally, one Project in view and its neighbours showing
+at either edge, out of focus and fading away. A Project is the size the site
+chose for it rather than a slice of the window, so the same Project is the same
+object from one machine to the next; it gives up height only on a window too
+short to show it together with the Section's heading and the Rail. The Deck is
+desktop-only: a phone is given the plain stack instead, every Project present
+at its own height and nothing moving.
+The page moves vertically and the Deck horizontally, so the two never compete
+for a gesture and the Deck is never somewhere a Visitor can be stuck. The Deck
+always rests on a whole Project and never between two.
+The Deck is not unavoidable: a Visitor who scrolls straight past sees the first
+Project and the edge of the second. Nothing is hidden from them — a neighbour
+is visibly there, and the Rail says how many Projects there are and reaches any
+of them in one press — but the Deck does not promise that every Project is
+reached by scrolling down. See
+[ADR 0007](./docs/adr/0007-deck-slides-horizontally.md).
 _Avoid_: carousel, slider, stack
 
 **Rail**:
-The column of dots down the side of the Deck, one dot per Project. It reads as
-position and not as progress — one dot active and the others alike, saying
-"one before, one after" rather than how far through a track the Visitor is —
-and every dot is also a control that travels the Deck to its Project. It
-carries the count as well, and it is the only place either is reported: with
-the Deck no longer unavoidable, the Rail is what tells a Visitor scrolling past
-that there is more here than the one Project they can see, so it is always
-visible and it sits beside the Panel rather than anywhere they would have to
-look for it.
+The row of controls under the Deck: one dot per Project, a step either side of
+them, and the count. The dots read as position and not as progress — one dot
+active and the others alike, saying "one before, one after" rather than how far
+through a track the Visitor is — and every dot is also a control that brings
+its Project into view. For a Visitor with a mouse and no trackpad the Rail is
+the way along the Deck rather than a shortcut for it, so it is always visible.
 _Avoid_: dots, ticks, indicator, scrollbar, pagination
+
+**Figure**:
+The character-art Pac-Man behind the Projects Section, chomping in place while
+pellets travel into its mouth and three ghosts flee ahead of it. It stands
+behind the Panel in view and shows over its top-right corner, so part of it is
+covered on purpose. It is decoration and nothing else: it takes no Visitor
+input, carries no string, and means nothing — no Visitor could read any state
+off it. It is the one thing on the content layer allowed colours outside the
+cold scale and the Signal, and those colours are its alone.
+_Avoid_: mascot, sprite, animation, easter egg
 
 **Signal**:
 The one acid accent, reserved for the few things the site actually wants
@@ -164,8 +162,10 @@ surface. Its scarcity is the whole point — a second Signal, or a decorative
 use of the first, spends it. Focus rings, the selection colour and the
 typewriter caret are states or decoration, so none of them is ever the Signal.
 Neither is the Rail — not because it is decoration, since it is a control, but
-because the Signal is scarce: the Rail stands beside a Project's Highlight, and
-a viewport holding two acid things holds no Signal at all.
+because the Signal is scarce: the Rail sits under a Project's Highlight, and a
+viewport holding two acid things holds no Signal at all. The Figure's yellow is
+not the Signal either: it is a different hue, and it is never on anything a
+Visitor can press or is meant to read.
 _Avoid_: accent, highlight (a Highlight is something else — see above), CTA
 colour
 

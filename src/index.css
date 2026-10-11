@@ -20,6 +20,10 @@
          calls to action, the active nav item, and a Project's Highlight.
          Never decorative, and never a Tone.
 
+     One exception, fenced off further down: the Figure behind the
+     Projects has a warm ramp of its own (--pac-*, --ghost-*). It is
+     decoration, it is not a third family, and nothing else may use it.
+
      The Backdrop's own colours are NOT here: it is a third-party preset
      and takes them as props. See src/components/ShaderBackdrop.jsx.
      ================================================================== */
@@ -123,7 +127,7 @@
     --dot-active-glow: rgba(143, 189, 196, 0.5);
     --dot-idle: var(--fg8);
 
-    /* --- the Pac-Man figure ---------------------------------------- */
+    /* --- the Figure ------------------------------------------------ */
     /* The one warm ramp on the site, and it belongs to the decorative
        figure behind the Projects alone: brightest to deepest, then its
        pellets. None of these is the Signal, and nothing else may use
