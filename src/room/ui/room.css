@@ -1,0 +1,375 @@
+/* The Room's overlay and the layers it sits on. Every colour is a Token
+   from src/index.css; the 3D scene's own colours live in src/room/palette.js. */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+.room,
+.room-stage {
+  position: fixed;
+  inset: 0;
+}
+
+.room-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* The CSS 3D layer covers the canvas but only the Screen inside it takes
+   the pointer; everything else falls through to the canvas. */
+.room-css {
+  position: absolute !important;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* --- the Screen ---------------------------------------------------------- */
+
+.room-screen {
+  position: relative;
+  overflow: hidden;
+  background: var(--screen-off);
+}
+
+.room-screen iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--screen-off);
+  color-scheme: dark;
+}
+
+.room-screen-glare,
+.room-screen-power {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* A panel's glass: a faint diagonal sheen and a soft darkening at the
+   edges. Kept low so it reads as glass and never as a filter. */
+.room-screen-glare {
+  background:
+    linear-gradient(118deg, var(--sheen-1) 0%, transparent 34%, transparent 70%, var(--sheen-2) 100%),
+    radial-gradient(130% 120% at 50% 40%, transparent 72%, var(--halo-soft) 100%);
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+.room-screen-power {
+  background: var(--screen-off);
+  transition: opacity 1.1s ease 0.15s;
+}
+
+.room-screen.is-on .room-screen-power {
+  opacity: 0;
+}
+
+/* --- the loader ---------------------------------------------------------- */
+
+.room-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--bg);
+  color: var(--fg3);
+}
+
+.room-loader-log {
+  position: absolute;
+  inset: 0;
+  padding: clamp(28px, 5vw, 64px);
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.room-loader-log p {
+  margin: 0;
+}
+
+.room-loader-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 26px;
+  color: var(--fg1);
+}
+
+.room-loader-mark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--ice), var(--ice-deep));
+  color: var(--bg);
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.room-loader-parts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.room-dim {
+  color: var(--fg5);
+}
+
+.room-ok {
+  color: var(--ice);
+}
+
+.room-gap {
+  margin-top: 20px !important;
+}
+
+.room-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 4px;
+  vertical-align: -0.15em;
+  background: var(--cursor);
+  animation: room-blink 1s step-end infinite;
+}
+
+.room-loader-foot {
+  position: absolute;
+  inset: auto clamp(28px, 5vw, 64px) clamp(22px, 4vw, 40px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--fg5);
+}
+
+.room-loader-plain {
+  display: inline-flex;
+  margin-top: 14px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  color: var(--fg1);
+  font-family: Karla, system-ui, sans-serif;
+  font-weight: 600;
+}
+
+/* --- the start card ------------------------------------------------------ */
+
+.room-start {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(520px, calc(100% - 40px));
+  translate: -50% -50%;
+  padding: 40px 40px 34px;
+  border: 1px solid var(--edge-strong);
+  border-radius: 22px;
+  background: var(--panel-solid);
+  box-shadow:
+    inset 0 1px 0 var(--sheen-1),
+    0 30px 80px var(--shadow-deep);
+}
+
+.room-start-name {
+  margin: 0 0 14px;
+  font-family: Archivo, system-ui, sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -1.5px;
+  color: var(--fg1);
+}
+
+.room-start-title {
+  margin: 0 0 10px;
+  font-size: 19px;
+  line-height: 1.45;
+  color: var(--fg2);
+}
+
+.room-start-body {
+  margin: 0 0 22px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--fg3);
+}
+
+.room-start-sound {
+  margin: 0 0 26px;
+  padding-top: 16px;
+  border-top: 1px solid var(--edge);
+  font-size: 13.5px;
+  color: var(--fg4);
+}
+
+.room-start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.room-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 26px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 200ms ease,
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.room-button:hover {
+  transform: translateY(-2px);
+}
+
+.room-button:active {
+  transform: scale(0.97);
+}
+
+.room-button-quiet {
+  color: var(--fg1);
+}
+
+/* --- language ------------------------------------------------------------ */
+
+.room-lang {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+}
+
+.room-lang-option {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  color: var(--fg4);
+  cursor: pointer;
+}
+
+.room-lang-option[aria-pressed="true"] {
+  background: var(--surf-2);
+  color: var(--fg1);
+}
+
+/* --- the HUD ------------------------------------------------------------- */
+
+.room-hud {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.room-hud-stack {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.room-hud-stack > *,
+.room-hud-row > * {
+  pointer-events: auto;
+}
+
+.room-hud-row {
+  display: flex;
+  gap: 5px;
+}
+
+/* A plain dark block per line, the way a terminal prints it. */
+.room-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  margin: 0;
+  padding: 4px 13px;
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--fg2);
+  font-size: 13.5px;
+  box-shadow: 0 6px 20px var(--shadow);
+}
+
+.room-tag-strong {
+  color: var(--fg1);
+  font-weight: 700;
+}
+
+.room-tag.room-lang {
+  padding: 2px;
+  border-color: transparent;
+}
+
+.room-icon-button {
+  padding: 4px 9px;
+  cursor: pointer;
+}
+
+.room-icon-button:hover,
+.room-link:hover {
+  color: var(--fg1);
+}
+
+.room-link {
+  color: var(--fg3);
+  text-decoration: none;
+}
+
+.room-help {
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  translate: -50% 0;
+  margin: 0;
+  padding: 6px 16px;
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--fg2);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-caret {
+    animation: none;
+  }
+  .room-screen-power {
+    transition: none;
+  }
+}
+
+@keyframes room-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
