@@ -4,11 +4,12 @@ import { cubicBezier, easeInOutQuint, easeOutExpo, fitDistance, idleSway } from 
 
 // Where the camera can be, and how it travels between those places.
 //
-// Four Viewpoints, each a function of the moment rather than a fixed pose:
+// Five Viewpoints, each a function of the moment rather than a fixed pose:
 //   loading — far out and high, before the Visitor starts;
 //   idle    — a slow orbit round the desk;
 //   desk    — sat in front of it, leaning with the pointer;
-//   monitor — square on to the Screen, close enough to use it.
+//   monitor — square on to the Screen, close enough to use it;
+//   dog     — crouched by the dog's bed, the whole bed in view.
 // A move between two of them starts from wherever the camera actually is
 // and lands on where the destination is *now*, so a Viewpoint that drifts
 // is met without a jump.
@@ -21,13 +22,17 @@ export const MOVES = {
   toggle: { duration: 1100, ease: easeInOutQuint },
   enterMonitor: { duration: 1900, ease: cubicBezier(0.13, 0.99, 0, 1) },
   leaveMonitor: { duration: 1100, ease: easeInOutQuint },
+  enterDog: { duration: 1600, ease: cubicBezier(0.13, 0.99, 0, 1) },
+  leaveDog: { duration: 1100, ease: easeInOutQuint },
 }
 
 export function createCamera() {
   return new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 2, 3000)
 }
 
-export function createRig(camera, anchor, { reducedMotion }) {
+// `dog` is where the dog's bed is: { centre, from } — the point to look at,
+// and the direction (towards the room) to look at it from.
+export function createRig(camera, anchor, { reducedMotion, dog }) {
   const pointer = new THREE.Vector2() // -1..1, smoothed
   const pointerTarget = new THREE.Vector2()
   const screenCentre = new THREE.Vector3()
@@ -68,6 +73,19 @@ export function createRig(camera, anchor, { reducedMotion }) {
       })
       out.position.copy(screenCentre).addScaledVector(screenNormal, distance)
       out.target.copy(screenCentre)
+    },
+    // Crouched by the dog's bed: the same glide in as the monitor, but framed
+    // wider — the whole bed, his plushies and a little floor round it — and
+    // leaning gently with the pointer.
+    dog(out) {
+      if (!dog) return viewpoints.idle(out)
+      const distance = fitDistance({ width: 118, height: 66, fov: FOV, aspect: camera.aspect, margin: 0.08 })
+      out.position.copy(dog.centre).addScaledVector(dog.from, distance)
+      out.position.x += pointer.x * 6
+      out.position.y -= pointer.y * 4
+      out.target.copy(dog.centre)
+      out.target.x += pointer.x * 2
+      return undefined
     },
   }
 

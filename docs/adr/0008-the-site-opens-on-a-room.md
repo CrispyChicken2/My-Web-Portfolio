@@ -43,7 +43,8 @@ The mechanics follow the reference:
   pointer), monitor (square on, fitted to the window) — with a click anywhere
   toggling idle and desk, pointing at the monitor going in, and leaving it
   coming back out. Moves start from wherever the camera is and land on where
-  the destination is *now*;
+  the destination is *now*. A fifth, added later at the owner's request,
+  glides down to the dog when the pointer is over his bed;
 - an overlay that types itself out — name, role, clock — on the Room's own
   keyboard.
 

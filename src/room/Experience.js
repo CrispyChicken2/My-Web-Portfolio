@@ -153,7 +153,18 @@ export class Experience {
 
     // --- the camera and the Screen ----------------------------------------
     scene.updateMatrixWorld(true)
-    this.rig = createRig(camera, anchor, { reducedMotion: this.reducedMotion })
+    // The dog's bed: where the dog Viewpoint looks, and the invisible
+    // ellipsoid round the bed the pointer is tested against (cheaper than
+    // the dog's own mesh, and a little larger, so the hover is easy to find).
+    const bed = corner.corner.getObjectByName('dog-bed')
+    const centre = bed.localToWorld(new THREE.Vector3(0, 16, 2))
+    const from = new THREE.Vector3(-0.62, 0.52, 0.58).normalize()
+    this.dogHit = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial())
+    this.dogHit.position.copy(bed.localToWorld(new THREE.Vector3(0, 12, 0)))
+    this.dogHit.quaternion.copy(bed.getWorldQuaternion(new THREE.Quaternion()))
+    this.dogHit.scale.set(50, 26, 40)
+    this.dogHit.updateMatrixWorld(true)
+    this.rig = createRig(camera, anchor, { reducedMotion: this.reducedMotion, dog: { centre, from } })
     this.audio = createAudio()
     this.audio.setMuted(this.muted)
 
@@ -249,8 +260,24 @@ export class Experience {
     }
     window.addEventListener('resize', this.onResize)
 
+    // Pointing at the dog takes the camera to him, the way pointing at the
+    // monitor does; pointing away brings it back to where it came from.
+    const ray = new THREE.Raycaster()
+    const ndc = new THREE.Vector2()
+    const overDog = (event) => {
+      ndc.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1)
+      ray.setFromCamera(ndc, this.camera)
+      return ray.intersectObject(this.dogHit, false).length > 0
+    }
+
     window.addEventListener('pointermove', (event) => {
       this.rig.setPointer((event.clientX / window.innerWidth) * 2 - 1, (event.clientY / window.innerHeight) * 2 - 1)
+      if (!this.started || event.target.closest?.('[data-ui]')) return
+      const view = this.rig.view
+      const over = overDog(event)
+      this.renderer.domElement.style.cursor = over && view !== 'monitor' ? 'zoom-in' : ''
+      if (over && (view === 'idle' || view === 'desk')) this.enterDog()
+      else if (!over && view === 'dog') this.leaveDog()
     })
 
     // A press anywhere that is not the Screen or the overlay moves between
@@ -263,6 +290,9 @@ export class Experience {
       if (view === 'idle') this.go('desk', MOVES.toggle)
       else if (view === 'desk') this.go('idle', MOVES.toggle)
       else if (view === 'monitor') this.go('desk', MOVES.leaveMonitor)
+      // a tap on the dog on a touch screen goes to him; a tap elsewhere comes back
+      else if (view === 'dog' && !overDog(event)) this.leaveDog()
+      if (event.pointerType === 'touch' && view !== 'dog' && overDog(event)) this.enterDog()
     })
 
     window.addEventListener('keydown', (event) => this.keyboard.press(event.code, true))
@@ -298,6 +328,17 @@ export class Experience {
   leaveMonitor() {
     if (!this.started || this.rig.view !== 'monitor') return
     this.go('desk', MOVES.leaveMonitor)
+  }
+
+  enterDog() {
+    if (!this.started || this.rig.view === 'dog') return
+    this.returnFromDog = this.rig.view === 'desk' ? 'desk' : 'idle'
+    this.go('dog', MOVES.enterDog)
+  }
+
+  leaveDog() {
+    if (!this.started || this.rig.view !== 'dog') return
+    this.go(this.returnFromDog ?? 'idle', MOVES.leaveDog)
   }
 
   key(code, down, repeat) {

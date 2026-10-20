@@ -146,9 +146,11 @@ textures (oak, floor planks, the mesh weave, keycap legends…) are drawn on
 canvases in `src/room/textures.js`. Sound is synthesised in
 `src/room/audio.js`. Nothing is downloaded.
 
-- **Camera** (`src/room/camera.js`): four Viewpoints — loading, idle, desk,
-  monitor. A click anywhere toggles idle and desk; pointing at the monitor (or
-  tabbing into it) goes in; leaving it, or Esc, comes back out. The monitor
+- **Camera** (`src/room/camera.js`): five Viewpoints — loading, idle, desk,
+  monitor, dog. A click anywhere toggles idle and desk; pointing at the monitor
+  (or tabbing into it) goes in; leaving it, or Esc, comes back out. Pointing at
+  the dog glides down to his bed, framed wider than the monitor, and pointing
+  away goes back to where the camera came from. The monitor
   Viewpoint is fitted to the window by `fitDistance` in
   `src/room/framing.js`, the Room's tested seam.
 - **Screen** (`src/room/screen.js`): `screen.html` in an iframe at a fixed

@@ -200,10 +200,10 @@ meaning — nothing in it is a control except the monitor. See
 _Avoid_: scene, 3D background, world
 
 **Viewpoint**:
-One of the four places the Room's camera can be: loading, idle, desk,
-monitor. A move between two always starts from where the camera is and lands
-on where the destination is now. A fifth Viewpoint is a design decision, not
-an implementation detail.
+One of the five places the Room's camera can be: loading, idle, desk,
+monitor, dog. A move between two always starts from where the camera is and
+lands on where the destination is now. A sixth Viewpoint is a design
+decision, not an implementation detail.
 _Avoid_: keyframe, camera position, shot
 
 **Screen**:
