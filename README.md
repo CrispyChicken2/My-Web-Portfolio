@@ -1,6 +1,21 @@
 # oscar-hunaut.dev — Portfolio
 
-A personal, **bilingual (EN/FR)** portfolio. The content layer is austere — a
+A personal, **bilingual (EN/FR)** portfolio in two forms:
+
+- **The Room** (`/`): a 3D evening desk — standing desk, 34-inch ultrawide,
+  mechanical keyboard, a Lian Li O11 Dynamic Mini V2 gaming PC lit in
+  lavender, a BlackShark V2 X, an ergonomic chair with a headrest, shelves of
+  books and football trophies, and a springer spaniel asleep in his bed — that
+  the camera glides around. Point at the monitor and it fills the window: the
+  monitor runs the **Screen**, a Windows 11-style desktop whose browser window
+  holds the whole site's content. The mechanics follow
+  [henryheffernan.com](https://henryheffernan.com/); everything in the Room
+  is modelled, textured and voiced in code. See
+  [ADR 0008](./docs/adr/0008-the-site-opens-on-a-room.md).
+- **The plain version** (`/classic.html`): the scrolling site described below.
+  Phones, browsers without WebGL, and anyone who asks for it get this one.
+
+The plain version's content layer is austere — a
 cold ice-cyan scale carries every surface and every string as pale text on
 deep surfaces, and a single acid-lime **Signal** marks the few things meant to
 be pressed or read. The colour and the motion sit behind the content: in the
@@ -28,6 +43,11 @@ npm run preview    # serve the production build locally
 
 Requires **Node ≥ 20**.
 
+Three pages are served: `/` (the Room), `/screen.html` (the Screen on its
+own, powered on) and `/classic.html` (the plain version). On the Room,
+`?room` skips the phone/WebGL check and `?skip` starts without the click —
+which also means no sound, since browsers only allow audio a person started.
+
 ---
 
 ## Editing the site
@@ -39,7 +59,13 @@ shape, `en` and `fr`. ⚠️ Any new string must be added to **both** — `npm t
 fails and names the offending key otherwise, so a half-translated Locale
 cannot ship. The language is detected on first visit (browser language), then
 remembered; visitors switch with the **EN | FR** toggle in the nav (logic in
-`src/i18n.jsx`).
+`src/i18n.jsx`). The Room's overlay and the Screen's taskbar carry the same
+toggle, and a switch in one is followed by the other.
+
+The Room and the Screen read the same content. Their own words — the loader,
+the overlay, window controls, the Terminal — live in
+**`src/data/interface.js`**, with the same two-Dictionary shape and the same
+parity test.
 
 ### Adding a Project
 
@@ -56,6 +82,9 @@ Every colour on the site resolves from the **Token block** at the top of
 (`--sig`), surfaces and Tones. No component carries a colour of its own, so
 retheming is one edit to that block. `tailwind.config.js` only references the
 Tokens.
+
+The **Room is another exception**: a lit 3D scene needs material and light
+colours WebGL can read, so they live in `src/room/palette.js`, one file.
 
 The **Backdrop is the exception**: it is a third-party preset and takes its
 three colours as props, in `src/components/ShaderBackdrop.jsx`. Change them
@@ -108,7 +137,47 @@ the Section.
 
 ---
 
+## The Room
+
+`src/room/Experience.js` builds the scene and runs the loop. The models are
+in `src/room/world/` — one file per object, all assembled from rounded boxes,
+lathes, tubes and bent planes in centimetres (the desk top sits at 75). Their
+textures (oak, floor planks, the mesh weave, keycap legends…) are drawn on
+canvases in `src/room/textures.js`. Sound is synthesised in
+`src/room/audio.js`. Nothing is downloaded.
+
+- **Camera** (`src/room/camera.js`): four Viewpoints — loading, idle, desk,
+  monitor. A click anywhere toggles idle and desk; pointing at the monitor (or
+  tabbing into it) goes in; leaving it, or Esc, comes back out. The monitor
+  Viewpoint is fitted to the window by `fitDistance` in
+  `src/room/framing.js`, the Room's tested seam.
+- **Screen** (`src/room/screen.js`): `screen.html` in an iframe at a fixed
+  1720 × 720 (21:9), placed over the monitor's glass by a `CSS3DRenderer`, on top of
+  the canvas. It is same-origin, so the Room listens to its keys and pointer
+  directly: each key press pushes the matching key on the 3D keyboard, and the
+  3D mouse follows the cursor.
+- **Quality**: ambient occlusion and bloom at up to 2× pixels; if the first
+  seconds after starting average under ~42 fps, the Room steps down once.
+- **Reduced motion**: camera moves become cuts, the idle orbit and the
+  pointer lean stop, the fans hold still and the RGB stops breathing.
+- **The PC** (`world/computer.js`) is the most detailed model: the case's
+  real layout and fan mounts, the cooler, the graphics card. Its lavender
+  comes from `palette.lavender`.
+
+`src/screen/` is the Screen, dressed as a dark Windows 11 desktop: a boot
+logo and sign-in, desktop icons, draggable and resizable windows (`windows.js`
+is the window manager, tested on its own), a centred taskbar whose language
+indicator is the EN/FR switch, and a start menu that lists the Projects under
+Recommended. The apps: the **Portfolio**, the site in a browser window
+(`apps/Browser.jsx` around `apps/Showcase.jsx`); a PowerShell-style
+**Terminal** (`apps/Terminal.jsx`) that answers from the content; and an
+empty **Recycle Bin**. Its colours are the `--os-*` Tokens.
+
+---
+
 ## The Backdrop
+
+This section and the next describe the plain version.
 
 `src/components/ShaderBackdrop.jsx` holds the Backdrop: a `<ShaderGradient>`
 preset exported from [shadergradient.co](https://shadergradient.co), applied
@@ -179,6 +248,11 @@ build pipeline and no production dependency.
   should, and every mapping clamps outside its range.
 - **`src/data/content.test.js`** — the two Dictionaries have the same key
   structure.
+- **`src/data/interface.test.js`** — the same, for the interface strings.
+- **`src/room/framing.test.js`** — the camera's easings start and end where
+  they should, and the monitor is framed whatever the window's shape.
+- **`src/screen/windows.test.js`** — the Screen's window manager: one window
+  per app, focus and stacking, and no window dragged out of reach.
 
 Deliberately not tested: anything browser-driven, and any visual regression
 snapshot. This is a presentation layer; the assertions would break on every
@@ -198,10 +272,13 @@ Static site (Vite → `dist/`), no backend, no runtime secrets.
   `npm run build`, output `dist`). Every push to `main` deploys to production,
   every PR gets a preview URL. Add the `oscar-hunaut.dev` domain under
   Settings → Domains.
-- `vercel.json` adds security headers (HSTS, `X-Frame-Options`, `nosniff`,
-  `Permissions-Policy`) and a 1-year immutable cache on `/assets/`.
-- `vite.config.js` injects a strict **Content-Security-Policy** at build time.
-  It permits **no external origin**. The Backdrop preset names an `envPreset`
+- `vercel.json` adds security headers (HSTS, `nosniff`, `Permissions-Policy`,
+  and `X-Frame-Options: SAMEORIGIN` with `frame-ancestors 'self'` — the Room
+  frames the Screen, nobody else may frame anything) and a 1-year immutable
+  cache on `/assets/`.
+- `vite.config.js` builds the three pages and injects a strict
+  **Content-Security-Policy** into each at build time. It permits **no
+  external origin**; `frame-src 'self'` lets the Room show the Screen. The Backdrop preset names an `envPreset`
   but uses `lightType="3d"`, so the library never fetches the HDR environment
   maps that `lightType="env"` would — switching to `"env"` means adding
   `https://ruucm.github.io` back to `connect-src`.
@@ -213,8 +290,10 @@ Static site (Vite → `dist/`), no backend, no runtime secrets.
 
 ```
 .
-├── index.html                    # SEO + Open Graph meta (oscar-hunaut.dev)
-├── vite.config.js                # Vite + Vitest + build-time CSP injection
+├── index.html                    # the Room; SEO + Open Graph meta (oscar-hunaut.dev)
+├── screen.html                   # the Screen, shown on the Room's monitor
+├── classic.html                  # the plain version
+├── vite.config.js                # Vite + Vitest + three pages + build-time CSP
 ├── vercel.json                   # security headers + asset caching
 ├── .npmrc                        # legacy-peer-deps=true (required to build)
 ├── .github/workflows/ci.yml      # CI: install → audit → test → build
@@ -224,12 +303,25 @@ Static site (Vite → `dist/`), no backend, no runtime secrets.
 │   ├── robots.txt · favicon.svg
 │   └── assets/                   # self-hosted .woff2 + profile/renovtacana.webp
 └── src/
-    ├── main.jsx                  # React entry (+ LanguageProvider)
-    ├── App.jsx                   # layout, scroll progress, reduced-motion
-    ├── i18n.jsx                  # EN/FR language context
+    ├── room/                     # the Room
+    │   ├── main.jsx              # entry: phone/WebGL check, then the overlay
+    │   ├── Experience.js         # renderer, scene, loop, input, quality
+    │   ├── camera.js · framing.js# Viewpoints and moves · their arithmetic
+    │   ├── screen.js · audio.js  # the iframe on the monitor · synthesised sound
+    │   ├── palette.js · textures.js
+    │   ├── world/                # room, desk, monitor, keyboard, mouse,
+    │   │                         # computer, chair, props, lighting
+    │   └── ui/                   # loader, start card, overlay (React)
+    ├── screen/                   # the Screen: boot, desktop, windows, taskbar,
+    │   └── apps/                 # Browser + Showcase (the Portfolio), Terminal,
+    │                             # Recycle Bin
+    ├── main.jsx                  # plain version: React entry (+ LanguageProvider)
+    ├── App.jsx                   # plain version: layout, scroll progress
+    ├── i18n.jsx                  # EN/FR language context, shared by all three
     ├── index.css                 # ← the Token block, Panels, Glass, the Deck
     ├── fonts.css                 # self-hosted @font-face
     ├── data/content.js           # ← ALL content (en + fr)
+    ├── data/interface.js         # ← the Room's and Screen's own words (en + fr)
     ├── motion/params.js          # ← the Zoom moments: scroll → motion parameters
     └── components/
         ├── Nav.jsx               # pill nav, scroll-spy, language toggle
@@ -240,7 +332,8 @@ Static site (Vite → `dist/`), no backend, no runtime secrets.
         ├── ImageSlot.jsx · Reveal.jsx · icons.jsx
 ```
 
-Page sections: **Hero → About → Skills → Projects → Experience → Contact.**
+Sections, in the plain version and in the Portfolio window alike:
+**Hero (Home) → About → Skills → Projects → Experience → Contact.**
 
 ---
 

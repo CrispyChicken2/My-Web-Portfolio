@@ -32,6 +32,17 @@ export function LanguageProvider({ children }) {
     }
   }, [lang])
 
+  // The Room and the Screen inside its monitor are two documents. A switch
+  // made in either is written to storage, and storage tells the other one.
+  useEffect(() => {
+    const onStorage = (event) => {
+      if (event.key === STORAGE_KEY && (event.newValue === 'en' || event.newValue === 'fr')) {
+        setLang(event.newValue)
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t: locales[lang] }}>

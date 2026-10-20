@@ -1,0 +1,798 @@
+/* The Screen — the desktop inside the Room's monitor, a fixed 1720 × 720
+   panel (the ultrawide's 21:9) dressed as a dark Windows 11 desktop. Every
+   colour is a Token from src/index.css: --os-* for the desktop's chrome. The
+   Portfolio inside its browser window is the site, and is styled in
+   apps/showcase.css with the site's own Tokens. */
+
+html,
+body,
+#root {
+  width: 1720px;
+  height: 720px;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--screen-off);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.os {
+  --os-font: "Segoe UI Variable Text", "Segoe UI", Karla, system-ui, sans-serif;
+  position: relative;
+  width: 1720px;
+  height: 720px;
+  overflow: hidden;
+  background: var(--screen-off);
+  color: var(--os-text);
+  font-family: var(--os-font);
+  font-size: 13px;
+}
+
+.os-wallpaper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- boot and sign-in -------------------------------------------------------- */
+
+.os-boot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 110px;
+  padding-top: 80px;
+  background: var(--screen-off);
+}
+
+/* The ring of dots that chase each other round while Windows starts. */
+.os-spinner {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+}
+
+.os-spinner span {
+  position: absolute;
+  inset: 0;
+  animation: os-orbit 2.6s cubic-bezier(0.5, 0.15, 0.4, 0.85) infinite;
+}
+
+.os-spinner span::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 999px;
+  background: var(--os-text);
+}
+
+.os-spinner-small {
+  width: 22px;
+  height: 22px;
+  margin-right: 14px;
+}
+
+.os-spinner-small span::before {
+  width: 3px;
+  height: 3px;
+  margin-left: -1.5px;
+}
+
+@keyframes os-orbit {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  70% {
+    transform: rotate(560deg);
+    opacity: 1;
+  }
+  85%,
+  100% {
+    transform: rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.os-login {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.os-login-card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+}
+
+.os-login-name {
+  margin: 6px 0 0;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.os-login-welcome {
+  display: flex;
+  align-items: center;
+  margin: 8px 0 0;
+  font-size: 17px;
+  color: var(--os-text-2);
+}
+
+.os-avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--os-accent);
+  color: var(--os-accent-text);
+  font-weight: 700;
+  box-shadow: 0 0 0 1px var(--os-stroke-strong);
+}
+
+.os-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- desktop ----------------------------------------------------------------- */
+
+.os-desktop {
+  position: absolute;
+  inset: 0;
+}
+
+.os-icons {
+  position: absolute;
+  top: 8px;
+  left: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.os-icon {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 82px;
+  padding: 6px 2px 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.os-icon span {
+  font-size: 12.5px;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 0 1px 3px var(--os-shadow), 0 0 2px var(--os-shadow);
+}
+
+.os-icon:hover {
+  background: var(--os-hover);
+}
+
+.os-icon[aria-pressed="true"] {
+  border-color: var(--os-stroke-strong);
+  background: var(--os-select);
+}
+
+/* --- windows ----------------------------------------------------------------- */
+
+.os-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--os-stroke);
+  border-radius: 8px;
+  background: var(--os-mica);
+  backdrop-filter: blur(40px) saturate(125%);
+  -webkit-backdrop-filter: blur(40px) saturate(125%);
+  box-shadow: 0 26px 60px var(--os-shadow);
+}
+
+.os-window[data-focused] {
+  border-color: var(--os-stroke-strong);
+}
+
+.os-window[data-maximized] {
+  border-radius: 0;
+}
+
+.os-titlebar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  justify-content: space-between;
+  height: 36px;
+  background: var(--os-mica-bar);
+  touch-action: none;
+}
+
+.os-titlebar-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 14px;
+  font-size: 12.5px;
+  color: var(--os-text-2);
+}
+
+.os-window[data-focused] .os-titlebar-title {
+  color: var(--os-text);
+}
+
+.os-captions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.os-captions button {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  color: var(--os-text-2);
+  transition: background-color 90ms ease;
+}
+
+.os-captions button:hover {
+  background: var(--os-hover);
+  color: var(--os-text);
+}
+
+.os-captions .os-caption-close:hover {
+  background: var(--os-close);
+  color: var(--os-text);
+}
+
+.os-window-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.os-window-grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+/* --- the browser (the Portfolio) and the terminal's tabs ---------------------- */
+
+.br-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px 0 0 8px;
+}
+
+.br-tab {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 260px;
+  height: 30px;
+  padding: 0 8px 0 12px;
+  border-radius: 8px 8px 0 0;
+  font-size: 12px;
+  color: var(--os-text-2);
+}
+
+.br-tab[data-active] {
+  background: var(--os-tab);
+  color: var(--os-text);
+}
+
+.br-favicon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--ice), var(--ice-deep));
+  color: var(--bg);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.br-tab-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.br-tab-close,
+.br-newtab {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  color: var(--os-text-2);
+}
+
+.br-newtab {
+  align-self: center;
+  margin-top: 4px;
+}
+
+.br {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.br-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--os-stroke);
+  background: var(--os-tab);
+}
+
+.br-tool {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 30px;
+  border-radius: 5px;
+  color: var(--os-text-2);
+}
+
+.br-tool-off {
+  color: var(--os-text-3);
+}
+
+.br-address {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  margin: 0 6px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--os-layer);
+  font-size: 13px;
+  color: var(--os-text-2);
+}
+
+.br-address strong {
+  font-weight: 500;
+  color: var(--os-text);
+}
+
+.br-star {
+  margin-left: auto;
+  color: var(--os-text-3);
+}
+
+.br-page {
+  flex: 1;
+  min-height: 0;
+  background: var(--bg);
+  color: var(--fg1);
+  font-family: Karla, system-ui, sans-serif;
+}
+
+.tm-tab {
+  width: 200px;
+}
+
+.tm-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--os-layer-2);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* --- Recycle Bin --------------------------------------------------------------- */
+
+.rb {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.rb-address {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 40px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--os-stroke);
+  color: var(--os-text-3);
+}
+
+.rb-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 5px;
+  background: var(--os-layer);
+  color: var(--os-text);
+}
+
+.rb-body {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  font-size: 13px;
+  color: var(--os-text-3);
+}
+
+.rb-status {
+  padding: 6px 14px;
+  border-top: 1px solid var(--os-stroke);
+  font-size: 12px;
+  color: var(--os-text-3);
+}
+
+/* --- taskbar ------------------------------------------------------------------- */
+
+.os-taskbar {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-top: 1px solid var(--os-stroke);
+  background: var(--os-taskbar);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+}
+
+.os-taskbar-centre {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.os-task {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 40px;
+  border-radius: 5px;
+  transition: background-color 90ms ease;
+}
+
+.os-task:hover,
+.os-search:hover,
+.os-tray-button:hover {
+  background: var(--os-hover);
+}
+
+.os-task:active {
+  background: var(--os-pressed);
+}
+
+/* The pill under an app: grey while it runs, wide and in the accent while
+   it has the focus. */
+.os-task[data-state="running"]::after,
+.os-task[data-state="active"]::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 6px;
+  height: 3px;
+  border-radius: 3px;
+  translate: -50% 0;
+  background: var(--os-text-3);
+  transition: width 160ms ease;
+}
+
+.os-task[data-state="active"] {
+  background: var(--os-hover);
+}
+
+.os-task[data-state="active"]::after {
+  width: 16px;
+  background: var(--os-accent);
+}
+
+.os-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 210px;
+  height: 34px;
+  margin: 0 6px;
+  padding: 0 14px;
+  border: 1px solid var(--os-stroke);
+  border-radius: 999px;
+  background: var(--os-layer);
+  font-size: 13px;
+  color: var(--os-text-3);
+}
+
+.os-tray {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+}
+
+.os-tray-glyph {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 40px;
+  color: var(--os-text-2);
+}
+
+.os-tray-button {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 8px;
+  border-radius: 5px;
+}
+
+.os-ime {
+  flex-direction: column;
+  justify-content: center;
+  font-size: 11.5px;
+  line-height: 1.25;
+}
+
+.os-tray-cluster {
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.os-clock {
+  display: grid;
+  justify-items: end;
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* --- start menu ---------------------------------------------------------------- */
+
+.os-startmenu {
+  position: absolute;
+  bottom: 58px;
+  left: 50%;
+  z-index: 100001;
+  width: 640px;
+  margin-left: -320px;
+  overflow: hidden;
+  border: 1px solid var(--os-stroke-strong);
+  border-radius: 8px;
+  background: var(--os-mica);
+  backdrop-filter: blur(48px) saturate(140%);
+  -webkit-backdrop-filter: blur(48px) saturate(140%);
+  box-shadow: 0 30px 70px var(--os-shadow);
+}
+
+.os-startmenu-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 36px;
+  margin: 24px 32px 4px;
+  padding: 0 16px;
+  border: 1px solid var(--os-stroke);
+  border-bottom-color: var(--os-accent);
+  border-radius: 999px;
+  background: var(--os-layer);
+  color: var(--os-text-3);
+}
+
+.os-startmenu-section {
+  padding: 12px 32px 2px;
+}
+
+.os-startmenu-section h2 {
+  margin: 0 0 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.os-pinned {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.os-pinned button {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 12px 4px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.os-pinned button:hover,
+.os-recommended button:hover,
+.os-power:hover {
+  background: var(--os-hover);
+}
+
+.os-recommended {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.os-recommended button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 5px;
+  text-align: left;
+}
+
+.os-recommended span {
+  display: grid;
+  min-width: 0;
+}
+
+.os-recommended strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.os-recommended small {
+  overflow: hidden;
+  font-size: 11.5px;
+  color: var(--os-text-3);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.os-startmenu-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 12px 40px;
+  border-top: 1px solid var(--os-stroke);
+  background: var(--os-layer);
+}
+
+.os-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.os-power {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 5px;
+}
+
+/* --- the Terminal -------------------------------------------------------------- */
+
+.term {
+  height: 100%;
+  overflow-y: auto;
+  padding: 12px 16px;
+  background: var(--os-terminal);
+  font-family: "Cascadia Mono", "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--os-text-2);
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+.term-line {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.term-line[data-tone="head"] {
+  color: var(--os-text);
+  font-weight: 700;
+}
+
+.term-line[data-tone="dim"] {
+  color: var(--os-text-3);
+}
+
+.term-line[data-tone="echo"] {
+  margin-top: 6px;
+  color: var(--os-text);
+}
+
+.term-line[data-tone="error"] {
+  color: var(--os-accent);
+}
+
+.term-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.term-input label {
+  flex-shrink: 0;
+  color: var(--os-text);
+}
+
+.term-input input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--os-text);
+  font: inherit;
+  caret-color: var(--os-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-spinner span {
+    animation: none;
+  }
+}

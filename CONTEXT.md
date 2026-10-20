@@ -5,6 +5,11 @@ for Oscar Hunaut, a Data & AI engineering student looking for a Data / ML
 internship. There is one audience (a recruiter or engineer reading top to
 bottom) and one goal (get them to the Contact section).
 
+The site exists in two forms that carry the same content: the **Room** (a 3D
+desk at `/`) and the **plain version** (the scrolling site). Most of the
+Appearance terms below — Backdrop, Field, Deck, Rail, Figure — belong to the
+plain version; the Room has its own section at the end.
+
 This file is the shared vocabulary only. For how anything is built or
 deployed, see [README.md](./README.md).
 
@@ -156,8 +161,8 @@ _Avoid_: mascot, sprite, animation, easter egg
 
 **Signal**:
 The one acid accent, reserved for the few things the site actually wants
-pressed or read: the Hero calls to action, the active nav item, and a
-Project's Highlight. One hue at one value, used both as text and as a filled
+pressed or read: the Hero calls to action (the Room's Start button is one),
+the active nav item, and a Project's Highlight. One hue at one value, used both as text and as a filled
 surface. Its scarcity is the whole point — a second Signal, or a decorative
 use of the first, spends it. Focus rings, the selection colour and the
 typewriter caret are states or decoration, so none of them is ever the Signal.
@@ -182,3 +187,39 @@ the Visitor scrolls. They are counted and chosen, not a rule applied to every
 Section — so "zoom this in too" is a proposal to spend one, and should be
 challenged.
 _Avoid_: scale animation, parallax, transition
+
+## The Room
+
+**Room**:
+The 3D evening desk the site opens on: a standing desk, a monitor, a
+keyboard, a mouse, a computer, a chair, the objects on the desk, shelves of
+books and trophies, and a sleeping dog in his bed, in the corner of a room.
+It is modelled in code, and like the Backdrop it carries no
+meaning — nothing in it is a control except the monitor. See
+[ADR 0008](./docs/adr/0008-the-site-opens-on-a-room.md).
+_Avoid_: scene, 3D background, world
+
+**Viewpoint**:
+One of the four places the Room's camera can be: loading, idle, desk,
+monitor. A move between two always starts from where the camera is and lands
+on where the destination is now. A fifth Viewpoint is a design decision, not
+an implementation detail.
+_Avoid_: keyframe, camera position, shot
+
+**Screen**:
+The desktop that runs on the Room's monitor: a real web page dressed as a
+dark Windows 11 desktop, booted when the Visitor starts, with icons, windows,
+a taskbar and a start menu. It is the only part of the Room a Visitor can use.
+_Avoid_: OS, iframe, monitor (the monitor is the object; the Screen is what
+it shows)
+
+**Portfolio window**:
+The Screen's main window, open from boot: the site itself in a browser window,
+one Section per page, with a sidebar of Sections. Its active Section is a nav item, so it is
+one of the places the Signal is spent.
+_Avoid_: showcase, app, browser
+
+**Plain version**:
+The scrolling site, kept whole. Phones, browsers without WebGL and anyone who
+asks for it get it instead of the Room.
+_Avoid_: fallback, classic, mobile site

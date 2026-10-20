@@ -127,6 +127,38 @@
     --dot-active-glow: rgba(143, 189, 196, 0.5);
     --dot-idle: var(--fg8);
 
+    /* --- the Screen ------------------------------------------------- */
+    /* The desktop that runs inside the Room's monitor, dressed as a dark
+       Windows 11 desktop: Mica surfaces, hairline strokes, and an accent
+       set to the lavender of the PC's RGB. A powered-off panel is true
+       black. These belong to the Screen's chrome alone; the Portfolio
+       window inside it is the site, in the site's own Tokens. */
+    --screen-off: #000000;
+    --os-wall: #0d0b1a;
+    --os-bloom-1: #e2d8ff;
+    --os-bloom-2: #b9a4ff;
+    --os-bloom-3: #7b5ce6;
+    --os-bloom-4: #3b2a8f;
+    --os-mica: rgba(32, 32, 36, 0.9);
+    --os-mica-bar: rgba(26, 26, 30, 0.94);
+    --os-layer: rgba(255, 255, 255, 0.045);
+    --os-layer-2: rgba(255, 255, 255, 0.075);
+    --os-stroke: rgba(255, 255, 255, 0.085);
+    --os-stroke-strong: rgba(255, 255, 255, 0.14);
+    --os-hover: rgba(255, 255, 255, 0.065);
+    --os-pressed: rgba(255, 255, 255, 0.04);
+    --os-text: #ffffff;
+    --os-text-2: rgba(255, 255, 255, 0.78);
+    --os-text-3: rgba(255, 255, 255, 0.54);
+    --os-accent: #c4b2ff;
+    --os-accent-text: #14102b;
+    --os-select: rgba(196, 178, 255, 0.22);
+    --os-close: #c42b1c;
+    --os-taskbar: rgba(24, 24, 28, 0.82);
+    --os-shadow: rgba(0, 0, 0, 0.55);
+    --os-terminal: #0c0c0c;
+    --os-tab: rgba(255, 255, 255, 0.06);
+
     /* --- the Figure ------------------------------------------------ */
     /* The one warm ramp on the site, and it belongs to the decorative
        figure behind the Projects alone: brightest to deepest, then its
