@@ -92,10 +92,10 @@ const en = {
     items: [
       {
         title: 'Phish Hunter',
-        category: 'Cybersecurity · Vision-Language Models · AI Agents',
+        category: 'Cybersecurity · Cloud (AWS) · Vision-Language Models',
         description:
-          'A tool that catches fake websites impersonating brands like PayPal or Microsoft as soon as they go online. It watches newly issued TLS certificates for lookalike domain names, safely screenshots the suspicious ones in an isolated container, and asks a vision model whether the page is phishing, parked or legitimate (61.5% triage accuracy vs 9.4% on names alone).',
-        tech: ['Python', 'Playwright', 'DuckDB', 'Docker', 'Mistral API', 'Streamlit'],
+          'Hunts phishing sites impersonating brands like PayPal or Microsoft from the moment their TLS certificate is issued. A 24/7 pipeline on AWS has scored 179,000+ lookalike domains (typos, homoglyphs, combosquats), screenshots the riskiest ones in a hardened sandbox, and has a vision model sort phishing from parked and legitimate pages: 61.5% triage accuracy vs 9.4% on names alone, 90% precision on parked domains. Infrastructure as code with Terraform, 440+ tests.',
+        tech: ['Python', 'Playwright', 'Docker', 'DuckDB', 'Mistral API', 'AWS (EC2, S3, CloudWatch, SSM)', 'Terraform', 'Streamlit', 'pytest', 'mypy'],
         github: 'https://github.com/CrispyChicken2/Phish-Hunter',
       },
       {
@@ -240,10 +240,10 @@ const fr = {
     items: [
       {
         title: 'Phish Hunter',
-        category: 'Cybersécurité · Modèles vision-langage · Agents IA',
+        category: 'Cybersécurité · Cloud (AWS) · Modèles vision-langage',
         description:
-          "Un outil qui repère les faux sites usurpant des marques comme PayPal ou Microsoft dès leur mise en ligne. Il surveille les certificats TLS nouvellement émis pour détecter les noms de domaine trompeurs, capture les pages suspectes en toute sécurité dans un conteneur isolé, puis demande à un modèle de vision si la page relève du phishing, du domaine parké ou du site légitime (61,5 % de précision au tri, contre 9,4 % sur les noms seuls).",
-        tech: ['Python', 'Playwright', 'DuckDB', 'Docker', 'Mistral API', 'Streamlit'],
+          "Traque les sites de phishing usurpant des marques comme PayPal ou Microsoft dès l'émission de leur certificat TLS. Un pipeline tournant 24 h/24 sur AWS a déjà évalué plus de 179 000 domaines trompeurs (fautes de frappe, homoglyphes, combosquatting), capture les plus risqués dans un bac à sable verrouillé, puis un modèle de vision distingue phishing, domaine parké et site légitime : 61,5 % de précision au tri contre 9,4 % sur les noms seuls, 90 % de précision sur les domaines parkés. Infrastructure as code avec Terraform, plus de 440 tests.",
+        tech: ['Python', 'Playwright', 'Docker', 'DuckDB', 'Mistral API', 'AWS (EC2, S3, CloudWatch, SSM)', 'Terraform', 'Streamlit', 'pytest', 'mypy'],
         github: 'https://github.com/CrispyChicken2/Phish-Hunter',
       },
       {
