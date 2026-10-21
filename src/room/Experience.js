@@ -21,6 +21,7 @@ import { buildProps } from './world/props'
 import { buildDogCorner } from './world/dogbed'
 import { buildLaundry, buildSlippers } from './world/laundry'
 import { buildEnvironment, buildLighting } from './world/lighting'
+import { mergeRigid, mergeStatic } from './world/merge'
 
 // The Room: builds the scene, runs the loop, and wires the Visitor's input
 // to the camera, the keyboard, the mouse and the sound.
@@ -31,13 +32,41 @@ import { buildEnvironment, buildLighting } from './world/lighting'
 
 const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()))
 
-// Three quality steps. The Room starts on the highest the device is likely
-// to hold and steps down once if it cannot keep up.
+// Three quality steps. The Room starts on the step the graphics chip is
+// likely to hold (see guessQuality) and steps down, one at a time, while the
+// first seconds run slow. `?quality=high|medium|low` forces one.
+//   · high   — ambient occlusion, bloom, fur, up to 2× pixels;
+//   · medium — bloom and fur, up to 1.5× pixels;
+//   · low    — no post-processing, no fur (the fabrics keep their sheen),
+//              smaller shadow maps, 1× pixels.
 const QUALITY = [
-  { name: 'high', pixelRatio: 2, ao: true, bloom: true },
-  { name: 'medium', pixelRatio: 1.5, ao: false, bloom: true },
-  { name: 'low', pixelRatio: 1, ao: false, bloom: false },
+  { name: 'high', pixelRatio: 2, ao: true, bloom: true, fur: true, shadow: 2048 },
+  { name: 'medium', pixelRatio: 1.5, ao: false, bloom: true, fur: true, shadow: 2048 },
+  { name: 'low', pixelRatio: 1, ao: false, bloom: false, fur: false, shadow: 1024 },
 ]
+
+// A first guess from the graphics chip's name, so a weak laptop starts light
+// instead of stuttering through seconds of the full Room before stepping
+// down. Integrated Intel HD/UHD graphics, phones' and software renderers, or
+// a machine with little memory or few cores: low. Recent integrated
+// graphics (Iris Xe, Radeon integrated): medium. Anything else: high.
+function guessQuality(renderer) {
+  const forced = ['high', 'medium', 'low'].indexOf(new URLSearchParams(window.location.search).get('quality'))
+  if (forced >= 0) return forced
+  let chip = ''
+  try {
+    const gl = renderer.getContext()
+    const info = gl.getExtension('WEBGL_debug_renderer_info')
+    chip = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : ''
+  } catch {
+    /* no chip name: guess from the machine */
+  }
+  const cores = navigator.hardwareConcurrency || 8
+  const memory = navigator.deviceMemory || 8
+  if (/SwiftShader|llvmpipe|Software|Mali|Adreno|PowerVR|Intel\(R\) (U)?HD|Intel (U)?HD/i.test(chip) || cores <= 4 || memory <= 4) return 2
+  if (/Iris|Radeon\(TM\) Graphics|Radeon Graphics|Vega/i.test(chip)) return 1
+  return 0
+}
 
 // The character a key on the overlay stands for, as the code of the key
 // that types it — so the overlay typing itself out presses real keys.
@@ -189,7 +218,19 @@ export class Experience {
     report('screen')
     await frame()
 
+    // --- one mesh per material for everything that never moves ------------
+    noAO.forEach((object) => {
+      object.userData.keep = true
+    })
+    mergeStatic(scene)
+    mergeRigid(scene)
+    this.furs = []
+    scene.traverse((object) => {
+      if (object.name.endsWith('-fur')) this.furs.push(object)
+    })
+
     // --- post-processing ---------------------------------------------------
+    this.qualityIndex = guessQuality(renderer)
     this.setupComposer(noAO)
     this.applyQuality()
     this.rig.update(0)
@@ -246,6 +287,15 @@ export class Experience {
     this.composer.setSize(window.innerWidth, window.innerHeight)
     this.passes.ao.enabled = quality.ao
     this.passes.bloom.enabled = quality.bloom
+    this.furs.forEach((fur) => {
+      fur.visible = quality.fur
+    })
+    this.scene.traverse((object) => {
+      if (!object.isLight || !object.castShadow || object.shadow.mapSize.x === quality.shadow) return
+      object.shadow.mapSize.set(quality.shadow, quality.shadow)
+      object.shadow.map?.dispose()
+      object.shadow.map = null
+    })
     this.renderer.shadowMap.needsUpdate = true
   }
 
@@ -408,11 +458,11 @@ export class Experience {
   watchFrameRate(delta) {
     if (!this.started || this.qualityIndex >= QUALITY.length - 1 || this.qualityChecked) return
     this.frameTimes.push(delta)
-    if (this.frameTimes.length < 150) return
-    const recent = this.frameTimes.slice(-90)
+    if (this.frameTimes.length < 90) return
+    const recent = this.frameTimes.slice(-60)
     const average = recent.reduce((sum, value) => sum + value, 0) / recent.length
     this.frameTimes = []
-    if (average > 1 / 42) {
+    if (average > 1 / 40) {
       this.qualityIndex += 1
       this.applyQuality()
       this.events.emit('quality', QUALITY[this.qualityIndex].name)

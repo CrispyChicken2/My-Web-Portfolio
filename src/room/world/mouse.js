@@ -49,6 +49,7 @@ export function buildMouse() {
   )
 
   const mouse = group([shell, seam, wheel, skirt], { name: 'mouse' })
+  mouse.userData.keep = true // it follows the cursor
   mouse.position.copy(REST)
   mouse.rotation.y = -6 * DEG
 

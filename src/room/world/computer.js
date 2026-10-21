@@ -127,6 +127,8 @@ function fanParts(m) {
     rotor.add(place(hub, m.frame, { cast: false }))
     if (label) rotor.add(place(cap, m.rgbSoft, { at: [0, 0, 0.72], cast: false }))
     fan.add(rotor)
+    rotor.userData.keep = true
+    rotor.userData.rigid = true
     rotors.push(rotor)
     return fan
   }
@@ -339,6 +341,8 @@ function buildCooler(m, parts, rotors, fan, socket) {
   }
   intake.add(place(new THREE.CylinderGeometry(0.55, 0.7, 0.6, 24), m.gunmetal, { rotate: [90 * DEG, 0, 0], cast: false }))
   block.add(intake)
+  intake.userData.keep = true
+  intake.userData.rigid = true
   rotors.push(intake)
   // The VRM fan's slot along the block's top edge.
   block.add(place(rbox(5.2, 0.5, 2.6, 0.2), m.rubber, { at: [0, 3.95, 2.2], cast: false }))

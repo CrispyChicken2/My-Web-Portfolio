@@ -181,6 +181,8 @@ export function buildKeyboard() {
     rotate: [4 * DEG, 0, 0],
     name: 'keyboard',
   })
+  board.userData.keep = true // its keys move
+  board.userData.rigid = true // ...the case does not
 
   // Pressing. Each key eases towards its target depth; only keys that are
   // moving are rewritten.

@@ -85,8 +85,10 @@ where a phone, a browser without WebGL, or a failed start is sent.
   so the content file is not touched. It has the same parity test as the
   content.
 - **Cost.** three.js and the Room are ~320 KB gzipped, loaded behind the
-  loader. The Room starts at the highest quality the device is likely to hold
-  and steps down once (no ambient occlusion, then no bloom and 1× pixels) if
-  the first seconds run slow.
+  loader. The Room guesses a starting quality from the graphics chip and
+  steps down while the first seconds run slow; the lowest step drops the
+  fur, the post-processing and half the shadow resolution. Static meshes are
+  merged by material once built, which took a full frame from ~2,700 draw
+  calls to ~1,200 at high quality and ~560 at low.
 - **The Backdrop, the Deck and the Figure now live only in the plain
   version.** ADRs 0001–0007 still describe that version accurately.

@@ -410,6 +410,8 @@ export function buildSpaniel() {
   const earFur = earParts.map((ear) => addFur(ear, { layers: 6, length: 0.6, density: 4.2, thickness: 0.95, clump: 0.6, droop: 0.5, shade: 0.2 }))
 
   const dog = group([body, ...details, ...earParts, collar(m)], { name: 'spaniel' })
+  dog.userData.keep = true // he breathes
+  dog.userData.rigid = true // ...as one piece
 
   // Breathing: slow and deep, the ribs rising most.
   const update = (elapsed) => {

@@ -116,6 +116,10 @@ Placed in **`public/assets/`**:
 
 - `profile.webp` — profile photo (About section)
 - `renovtacana.webp` — RenovTaCana project screenshot
+- `og-room-v3.jpg` — the link-preview image (1200 × 630) shown when the site
+  is shared. It is cached for a year, so a new one needs a new file name (and
+  the `og:image` / `twitter:image` tags in `index.html` and `classic.html`
+  updated to match).
 
 The `ImageSlot` component renders them and is display-only — visitors cannot
 click, focus or replace a picture. To change one, replace the file keeping the
@@ -158,8 +162,18 @@ canvases in `src/room/textures.js`. Sound is synthesised in
   the canvas. It is same-origin, so the Room listens to its keys and pointer
   directly: each key press pushes the matching key on the 3D keyboard, and the
   3D mouse follows the cursor.
-- **Quality**: ambient occlusion and bloom at up to 2× pixels; if the first
-  seconds after starting average under ~42 fps, the Room steps down once.
+- **Quality**: three steps. *High*: ambient occlusion, bloom, fur, up to 2×
+  pixels. *Medium*: bloom and fur, 1.5×. *Low*: no post-processing, no fur,
+  smaller shadow maps, 1×. The Room guesses its starting step from the
+  graphics chip (integrated Intel HD/UHD, phone and software renderers, or a
+  machine with ≤ 4 cores or ≤ 4 GB start low; Iris Xe and integrated Radeon
+  start medium), then steps down while the first seconds average under
+  ~40 fps. `?quality=high|medium|low` forces a step.
+- **Draw calls**: once built, every static mesh sharing a material is baked
+  into one (`world/merge.js`), and each rigidly moving thing (a fan's rotor,
+  the dog) into one of its own — a full frame is ~1,200 draw calls at high
+  and ~560 at low, from ~2,700. Mark anything that moves on its own
+  `userData.keep`, or it will be frozen into the merge.
 - **Reduced motion**: camera moves become cuts, the idle orbit and the
   pointer lean stop, the fans hold still and the RGB stops breathing.
 - **The PC** (`world/computer.js`) is the most detailed model: the case's

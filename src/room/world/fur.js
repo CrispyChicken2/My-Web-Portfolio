@@ -91,5 +91,7 @@ export function addFur(mesh, { layers = 10, length = 0.6, density = 2.5, thickne
   }
 
   mesh.add(group)
+  // the shells hang off this mesh: it must stay a mesh of its own
+  mesh.userData.keep = true
   return group
 }
