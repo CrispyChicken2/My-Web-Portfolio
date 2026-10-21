@@ -28,26 +28,47 @@ const ROAN = new THREE.Color('#9c7a66')
 
 // --- distance functions (cm) ------------------------------------------------------------
 
-function sdEllipsoid(px, py, pz, [cx, cy, cz], [rx, ry, rz]) {
-  const x = px - cx
-  const y = py - cy
-  const z = pz - cz
-  const k0 = Math.hypot(x / rx, y / ry, z / rz)
-  const k1 = Math.hypot(x / (rx * rx), y / (ry * ry), z / (rz * rz))
-  return k1 === 0 ? -Math.min(rx, ry, rz) : (k0 * (k0 - 1)) / k1
+// These run millions of times while the dog is built, so each shape works
+// out its constants once and the distance itself uses only plain arithmetic
+// (Math.hypot is far slower than a square root).
+
+// An ellipsoid centred on c with radii r.
+function sdEllipsoid([cx, cy, cz], [rx, ry, rz]) {
+  const ax = 1 / rx
+  const ay = 1 / ry
+  const az = 1 / rz
+  const bx = ax * ax
+  const by = ay * ay
+  const bz = az * az
+  const inner = -Math.min(rx, ry, rz)
+  return (px, py, pz) => {
+    const x = px - cx
+    const y = py - cy
+    const z = pz - cz
+    const k0 = Math.sqrt(x * x * bx + y * y * by + z * z * bz)
+    const k1 = Math.sqrt(x * x * bx * bx + y * y * by * by + z * z * bz * bz)
+    return k1 === 0 ? inner : (k0 * (k0 - 1)) / k1
+  }
 }
 
 // A tapered capsule from a (radius ra) to b (radius rb).
-function sdCone(px, py, pz, a, b, ra, rb) {
-  const bax = b[0] - a[0]
-  const bay = b[1] - a[1]
-  const baz = b[2] - a[2]
-  const pax = px - a[0]
-  const pay = py - a[1]
-  const paz = pz - a[2]
-  const h = Math.min(1, Math.max(0, (pax * bax + pay * bay + paz * baz) / (bax * bax + bay * bay + baz * baz)))
-  const d = Math.hypot(pax - bax * h, pay - bay * h, paz - baz * h)
-  return d - (ra + (rb - ra) * h)
+function sdCone(a, b, ra, rb) {
+  const [ax, ay, az] = a
+  const bax = b[0] - ax
+  const bay = b[1] - ay
+  const baz = b[2] - az
+  const inverse = 1 / (bax * bax + bay * bay + baz * baz)
+  const taper = rb - ra
+  return (px, py, pz) => {
+    const pax = px - ax
+    const pay = py - ay
+    const paz = pz - az
+    const h = Math.min(1, Math.max(0, (pax * bax + pay * bay + paz * baz) * inverse))
+    const dx = pax - bax * h
+    const dy = pay - bay * h
+    const dz = paz - baz * h
+    return Math.sqrt(dx * dx + dy * dy + dz * dz) - (ra + taper * h)
+  }
 }
 
 function smin(a, b, k) {
@@ -58,8 +79,8 @@ function smin(a, b, k) {
 // --- the anatomy ---------------------------------------------------------------------------
 // Dog space: +z is where his nose points, +y up, +x his right-hand side.
 
-const E = (c, r) => (x, y, z) => sdEllipsoid(x, y, z, c, r)
-const C = (a, b, ra, rb) => (x, y, z) => sdCone(x, y, z, a, b, ra, rb)
+const E = sdEllipsoid
+const C = sdCone
 
 const BODY = [
   E([0, 11.5, 2], [10.5, 11, 13]), // ribcage, deep
@@ -104,20 +125,20 @@ const HEAD = [
 // toes: three small knuckles across the front of each front paw
 const TOES = [4.4, -4.4].flatMap((x) => [-1.4, 0, 1.4].map((dx) => E([x + dx, 2.3, 31.6], [1.1, 1.3, 1.3])))
 
+// Each group of parts and how softly it blends into what came before.
+const GROUPS = [
+  [BODY, 4],
+  [LIMBS, 2.2],
+  [HEAD, 2.4],
+  [TOES, 0.8],
+]
+
 function distance(x, y, z) {
   let d = Infinity
-  BODY.forEach((f) => {
-    d = smin(d, f(x, y, z), 4)
-  })
-  LIMBS.forEach((f) => {
-    d = smin(d, f(x, y, z), 2.2)
-  })
-  HEAD.forEach((f) => {
-    d = smin(d, f(x, y, z), 2.4)
-  })
-  TOES.forEach((f) => {
-    d = smin(d, f(x, y, z), 0.8)
-  })
+  for (let g = 0; g < GROUPS.length; g += 1) {
+    const [parts, k] = GROUPS[g]
+    for (let i = 0; i < parts.length; i += 1) d = smin(d, parts[i](x, y, z), k)
+  }
   return d
 }
 
@@ -139,7 +160,10 @@ const PATCHES = [
 function colourAt(x, y, z, out) {
   out.copy(WHITE)
   PATCHES.forEach(([c, r, colour, strength]) => {
-    const k = Math.hypot((x - c[0]) / r[0], (y - c[1]) / r[1], (z - c[2]) / r[2])
+    const u = (x - c[0]) / r[0]
+    const v = (y - c[1]) / r[1]
+    const w = (z - c[2]) / r[2]
+    const k = Math.sqrt(u * u + v * v + w * w)
     const t = THREE.MathUtils.smoothstep(1.15 - k, 0, 0.3) * strength
     if (t > 0) out.lerp(colour, t)
   })
@@ -149,27 +173,53 @@ function colourAt(x, y, z, out) {
 const CENTRE = [6, 13, 3]
 const HALF = 36 // the field covers 72 cm a side
 
+// The field is only meaningful within 6 cm of the surface: further out it is
+// clamped, and colour is only read within 2.5 cm. So the grid is walked in
+// blocks of 4 × 4 × 4 points, and a block whose centre is far from the dog is
+// filled with the clamped value without measuring each point. The distance
+// changes at most about as fast as the point moves, so a block is skipped
+// only when its centre is further than 6 cm plus twice its own reach.
+const BLOCK = 4
+
 function grow() {
   const resolution = 112
   const mc = new MarchingCubes(resolution, new THREE.MeshBasicMaterial(), false, true, 260000)
   mc.isolation = 80
   const size = mc.size
   const half = size / 2
+  const at = (i, c) => ((i - half) / half) * HALF + c
+  const reach = ((BLOCK - 1) / 2) * (HALF / half) * Math.sqrt(3)
   const colour = new THREE.Color()
-  for (let zi = 0; zi < size; zi += 1) {
-    const z = ((zi - half) / half) * HALF + CENTRE[2]
-    for (let yi = 0; yi < size; yi += 1) {
-      const y = ((yi - half) / half) * HALF + CENTRE[1]
-      for (let xi = 0; xi < size; xi += 1) {
-        const x = ((xi - half) / half) * HALF + CENTRE[0]
-        const q = xi + yi * size + zi * size * size
-        const d = y < -0.2 ? 5 : distance(x, y, z)
-        mc.field[q] = 80 - Math.max(-6, Math.min(6, d)) * 10
-        if (Math.abs(d) < 2.5) {
-          colourAt(x, y, z, colour)
-          mc.palette[q * 3] = colour.r
-          mc.palette[q * 3 + 1] = colour.g
-          mc.palette[q * 3 + 2] = colour.b
+
+  const measure = (xi, yi, zi) => {
+    const x = at(xi, CENTRE[0])
+    const y = at(yi, CENTRE[1])
+    const z = at(zi, CENTRE[2])
+    const q = xi + yi * size + zi * size * size
+    const d = y < -0.2 ? 5 : distance(x, y, z)
+    mc.field[q] = 80 - Math.max(-6, Math.min(6, d)) * 10
+    if (Math.abs(d) < 2.5) {
+      colourAt(x, y, z, colour)
+      mc.palette[q * 3] = colour.r
+      mc.palette[q * 3 + 1] = colour.g
+      mc.palette[q * 3 + 2] = colour.b
+    }
+  }
+
+  const middle = (BLOCK - 1) / 2
+  for (let zb = 0; zb < size; zb += BLOCK) {
+    for (let yb = 0; yb < size; yb += BLOCK) {
+      for (let xb = 0; xb < size; xb += BLOCK) {
+        const d = distance(at(xb + middle, CENTRE[0]), at(yb + middle, CENTRE[1]), at(zb + middle, CENTRE[2]))
+        const far = Math.abs(d) - 2 * reach > 6
+        for (let zi = zb; zi < zb + BLOCK; zi += 1) {
+          for (let yi = yb; yi < yb + BLOCK; yi += 1) {
+            const below = at(yi, CENTRE[1]) < -0.2
+            for (let xi = xb; xi < xb + BLOCK; xi += 1) {
+              if (!far) measure(xi, yi, zi)
+              else mc.field[xi + yi * size + zi * size * size] = below ? 30 : d > 0 ? 20 : 140
+            }
+          }
         }
       }
     }
@@ -193,6 +243,22 @@ function grow() {
 }
 
 // --- the face, found on the surface -----------------------------------------------------
+
+// Every ray that dresses the face is cast at the head, from in front of it,
+// so it is tested only against the triangles there (z beyond `fromZ`)
+// rather than the whole body: the same hits, far fewer tests.
+function frontOf(geometry, fromZ) {
+  const source = geometry.attributes.position.array
+  const kept = []
+  for (let i = 0; i < source.length; i += 9) {
+    if (Math.max(source[i + 2], source[i + 5], source[i + 8]) > fromZ) {
+      for (let j = 0; j < 9; j += 1) kept.push(source[i + j])
+    }
+  }
+  const front = new THREE.BufferGeometry()
+  front.setAttribute('position', new THREE.Float32BufferAttribute(kept, 3))
+  return front
+}
 
 function surfaceFinder(mesh) {
   const ray = new THREE.Raycaster()
@@ -391,7 +457,7 @@ export function buildSpaniel() {
   body.receiveShadow = true
   body.name = 'spaniel-body'
 
-  const find = surfaceFinder(new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })))
+  const find = surfaceFinder(new THREE.Mesh(frontOf(geometry, 14), new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })))
   const details = [
     ...closedEye(find, 1, m),
     ...closedEye(find, -1, m),

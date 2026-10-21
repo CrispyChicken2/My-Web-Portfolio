@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import { palette } from '../palette'
 import { SCREEN } from './monitor'
 import { WALL_X, WALL_Z } from './room'
@@ -64,12 +65,12 @@ export function buildLighting(anchor) {
 
 export function buildEnvironment(renderer, scene) {
   // Reflections come from a generated room rather than a downloaded HDR, so
-  // nothing leaves the origin. Kept low: it is a night scene.
-  return import('three/addons/environments/RoomEnvironment.js').then(({ RoomEnvironment }) => {
-    const pmrem = new THREE.PMREMGenerator(renderer)
-    const environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.environment = environment
-    scene.environmentIntensity = 0.16
-    pmrem.dispose()
-  })
+  // nothing leaves the origin. Kept low: it is a night scene. RoomEnvironment
+  // is imported with the rest of the Room, not on demand, so the build never
+  // stops halfway to fetch it.
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  const environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+  scene.environment = environment
+  scene.environmentIntensity = 0.16
+  pmrem.dispose()
 }

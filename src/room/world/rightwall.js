@@ -224,6 +224,77 @@ function playerTrophy() {
   return group(parts)
 }
 
+// Paints the ball's panels into an RGBA pixel array laid out the way
+// SphereGeometry maps its UVs. Each pixel belongs to the panel whose centre
+// is nearest (in angle, pentagons slightly handicapped); where the nearest
+// two are almost equally near, it is a seam. The nearest few panels are
+// found with a dot product, which is cheap, and only those few are measured
+// as angles: half a million pixels × 32 panels of arccosines took most of a
+// second.
+const CANDIDATES = 4
+
+function paintPanels(data, W, H, panels) {
+  const count = panels.length
+  const px = new Float64Array(count)
+  const py = new Float64Array(count)
+  const pz = new Float64Array(count)
+  panels.forEach((panel, i) => {
+    px[i] = panel.v.x
+    py[i] = panel.v.y
+    pz[i] = panel.v.z
+  })
+  const top = new Int32Array(CANDIDATES)
+  const topDot = new Float64Array(CANDIDATES)
+  const cosPhi = new Float64Array(W)
+  const sinPhi = new Float64Array(W)
+  for (let x = 0; x < W; x += 1) {
+    const phi = ((x + 0.5) / W) * Math.PI * 2
+    cosPhi[x] = Math.cos(phi)
+    sinPhi[x] = Math.sin(phi)
+  }
+  for (let y = 0; y < H; y += 1) {
+    const theta = ((y + 0.5) / H) * Math.PI
+    const sinTheta = Math.sin(theta)
+    const ny = Math.cos(theta)
+    for (let x = 0; x < W; x += 1) {
+      const nx = -cosPhi[x] * sinTheta
+      const nz = sinPhi[x] * sinTheta
+      topDot.fill(-Infinity)
+      for (let p = 0; p < count; p += 1) {
+        const dot = nx * px[p] + ny * py[p] + nz * pz[p]
+        if (dot <= topDot[CANDIDATES - 1]) continue
+        let k = CANDIDATES - 1
+        while (k > 0 && dot > topDot[k - 1]) {
+          topDot[k] = topDot[k - 1]
+          top[k] = top[k - 1]
+          k -= 1
+        }
+        topDot[k] = dot
+        top[k] = p
+      }
+      let best = 0
+      let nearest = Infinity
+      let second = Infinity
+      for (let k = 0; k < CANDIDATES; k += 1) {
+        const d = Math.acos(Math.min(1, Math.max(-1, topDot[k]))) + panels[top[k]].bias
+        if (d < nearest) {
+          second = nearest
+          nearest = d
+          best = top[k]
+        } else if (d < second) second = d
+      }
+      const seam = THREE.MathUtils.smoothstep(second - nearest, 0.006, 0.016)
+      const shade = panels[best].black ? 18 : 236
+      const c = Math.round(shade * seam + 70 * (1 - seam))
+      const i = (y * W + x) * 4
+      data[i] = c
+      data[i + 1] = c
+      data[i + 2] = c
+      data[i + 3] = 255
+    }
+  }
+}
+
 // A match ball: twelve black pentagons where the icosahedron's vertices are,
 // twenty white hexagons over its faces, seams between. The panels are
 // painted into the ball's texture pixel by pixel, so their edges stay crisp.
@@ -254,34 +325,7 @@ function football(radius) {
   element.height = H
   const ctx = element.getContext('2d')
   const image = ctx.createImageData(W, H)
-  const n = new THREE.Vector3()
-  for (let y = 0; y < H; y += 1) {
-    // the same mapping SphereGeometry uses for its UVs
-    const theta = ((y + 0.5) / H) * Math.PI
-    for (let x = 0; x < W; x += 1) {
-      const phi = ((x + 0.5) / W) * Math.PI * 2
-      n.set(-Math.cos(phi) * Math.sin(theta), Math.cos(theta), Math.sin(phi) * Math.sin(theta))
-      let best = null
-      let nearest = Infinity
-      let second = Infinity
-      for (const panel of panels) {
-        const d = n.angleTo(panel.v) + panel.bias
-        if (d < nearest) {
-          second = nearest
-          nearest = d
-          best = panel
-        } else if (d < second) second = d
-      }
-      const seam = THREE.MathUtils.smoothstep(second - nearest, 0.006, 0.016)
-      const panel = best.black ? 18 : 236
-      const c = Math.round(panel * seam + 70 * (1 - seam))
-      const i = (y * W + x) * 4
-      image.data[i] = c
-      image.data[i + 1] = c
-      image.data[i + 2] = c
-      image.data[i + 3] = 255
-    }
-  }
+  paintPanels(image.data, W, H, panels)
   ctx.putImageData(image, 0, 0)
   const map = new THREE.CanvasTexture(element)
   map.colorSpace = THREE.SRGBColorSpace

@@ -31,7 +31,7 @@ export default function Loader({ ui, parts, loaded, phase, onStart }) {
 
   useEffect(() => {
     if (phase !== 'ready') return undefined
-    const id = setTimeout(() => setShowCard(true), 650)
+    const id = setTimeout(() => setShowCard(true), 250)
     return () => clearTimeout(id)
   }, [phase])
 

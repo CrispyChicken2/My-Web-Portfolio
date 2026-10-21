@@ -136,6 +136,27 @@ export class Experience {
     scene.add(monitor)
     scene.updateMatrixWorld(true)
     this.anchor = anchor
+
+    // The Screen's page starts loading now, while the rest of the Room is
+    // built. A CSS3D object only enters the document when it is first
+    // rendered, so it is rendered once here; otherwise the iframe would not
+    // load until the build had finished.
+    const screen = createScreen(anchor, {
+      onEnter: () => this.enterMonitor(),
+      onLeave: () => this.leaveMonitor(),
+      onKey: (code, down, repeat) => this.key(code, down, repeat),
+      onPointer: (u, v) => this.mouse.point(u, v),
+      onButton: (down) => {
+        this.mouse.button(down)
+        this.audio.click(down)
+      },
+      onMessage: (message) => this.message(message),
+    })
+    screen.place()
+    this.cssScene.add(screen.object)
+    this.screen = screen
+    const screenLoaded = new Promise((resolve) => screen.iframe.addEventListener('load', resolve, { once: true }))
+    css.render(this.cssScene, camera)
     report('monitor')
     await frame()
 
@@ -197,24 +218,7 @@ export class Experience {
     this.audio = createAudio()
     this.audio.setMuted(this.muted)
 
-    const screen = createScreen(anchor, {
-      onEnter: () => this.enterMonitor(),
-      onLeave: () => this.leaveMonitor(),
-      onKey: (code, down, repeat) => this.key(code, down, repeat),
-      onPointer: (u, v) => mouse.point(u, v),
-      onButton: (down) => {
-        mouse.button(down)
-        this.audio.click(down)
-      },
-      onMessage: (message) => this.message(message),
-    })
-    screen.place()
-    this.cssScene.add(screen.object)
-    this.screen = screen
-    await Promise.race([
-      new Promise((resolve) => screen.iframe.addEventListener('load', resolve, { once: true })),
-      new Promise((resolve) => setTimeout(resolve, 6000)),
-    ])
+    await Promise.race([screenLoaded, new Promise((resolve) => setTimeout(resolve, 6000))])
     report('screen')
     await frame()
 
